@@ -20,7 +20,7 @@ default:
       memory: 100Mi
   replicaCount: 1
   image:
-    repository:
+    repository: 842675998483.dkr.ecr.us-east-2.amazonaws.com/harshitha
     tag:
     imagePullPolicy: Always
   signoz:
@@ -46,7 +46,7 @@ job:
     serviceAccount:
       create: true
       annotations:
-        iam.gke.io/gcp-service-account: zamp-dev-sg-hcp@development-351109.iam.gserviceaccount.com
+        eks.amazonaws.com/role-arn: arn:aws:iam::842675998483:role/GitHubActionsOIDCRole
     containers:
       - name: app-migrations  # required
         command:
