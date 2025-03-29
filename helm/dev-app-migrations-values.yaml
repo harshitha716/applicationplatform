@@ -46,7 +46,7 @@ job:
     serviceAccount:
       create: true
       annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::842675998483:role/GitHubActionsOIDCRole
+        eks.amazonaws.com/role-arn: arn:aws:iam::842675998483:role/zamp-prd-sg-pantheon-role
     containers:
       - name: app-migrations  # required
         command:
