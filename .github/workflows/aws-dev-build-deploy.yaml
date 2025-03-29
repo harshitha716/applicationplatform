@@ -117,7 +117,7 @@ jobs:
           echo "PRD_TRIGGER_TOKEN=PRD_TRIGGER_TOKEN" >> $GITHUB_OUTPUT
 
           echo "SSH_PRIVATE_KEY=SSH_PRIVATE_KEY" >> $GITHUB_OUTPUT
-          echo "NEW_TAG=$GITHUB_SHA >> $GITHUB_OUTPUT
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
           
       - name: Output Branch name
         run: >
