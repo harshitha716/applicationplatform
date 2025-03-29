@@ -356,15 +356,12 @@ jobs:
           IMAGE_TAG=$GITHUB_SHA
 
           VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
-
-          cat ${VALUES_FILE}
-
           echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
 
           helm repo add application s3://${HELM_REPOSITORY}
           helm repo update
           helm version
-          helm upgrade --install hcp-app-migrations application/zamp-svc \
+          helm install hcp-app-migrations application/zamp-svc \
              --namespace ${NAMESPACE} \
              --set default.image.repository="${ECR_REPO}" \
              --set default.image.tag="${IMAGE_TAG}" \
