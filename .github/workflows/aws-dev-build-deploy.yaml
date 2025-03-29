@@ -352,24 +352,28 @@ jobs:
           helm plugin install https://github.com/hypnoglow/helm-s3.git
           helm plugin list
       - name: Deploy App Migrations
-        run: >
-          IMAGE_TAG=$GITHUB_SHA
+        run: |
+         IMAGE_TAG=$GITHUB_SHA
+         VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
 
-          VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
-          echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
+         echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
 
-          helm repo add application s3://${HELM_REPOSITORY}
-          helm repo update
-          helm version
-          helm install hcp-app-migrations application/zamp-svc \
-             --namespace ${NAMESPACE} \
-             --set default.image.repository="${ECR_REPO}" \
-             --set default.image.tag="${IMAGE_TAG}" \
-             --values helm/${BUILD_ENV}-app-migrations-values.yaml \
-             --wait \
-             --timeout 12m0s
+         # Add and update Helm repo
+         helm repo add application s3://${HELM_REPOSITORY}
+         helm repo update
 
-          
+         # Print Helm version for debugging
+         helm version
+
+      
+         helm install hcp-app-migrations application/zamp-svc \
+           --namespace ${NAMESPACE} \
+           --set default.image.repository="${ECR_REPO}" \
+           --set default.image.tag="${IMAGE_TAG}" \
+           --values ${VALUES_FILE} \
+           --wait \
+           --timeout 12m0s
+
           # Check if the job completed successfully
 
           echo "Checking job status for ${APP_NAME}..."
