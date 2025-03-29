@@ -34,7 +34,7 @@ default:
     injection:
       enabled: true
       secrets:
-      - secretName: zamp-hcp-app-migrations-env
+      - secretName: env
         dataFrom:
           secretKey: zamp-dev-sg-hcp-secrets-env
         refreshInterval: 10m
