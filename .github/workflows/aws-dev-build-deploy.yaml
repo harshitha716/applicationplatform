@@ -363,7 +363,6 @@ jobs:
       
          helm upgrade --install hcp-app-migrations application/zamp-svc \
            --namespace ${NAMESPACE} \
-           --set default.image.repository="${ECR_REPO}" \
            --set default.image.tag="${IMAGE_TAG}" \
            --values ${VALUES_FILE} \
            --wait \
