@@ -71,6 +71,7 @@ on:
           - aws-dev
 env:
   APP_NAME: hcp
+  NEW_TAG: $GITHUB_SHA
 jobs:
   prepare-env:
     name: Prepare Env
@@ -97,7 +98,7 @@ jobs:
       HELM_CHART_NAME: ${{ steps.vars.outputs.HELM_CHART_NAME }}
       LABEL_SELECTOR: ${{ steps.vars.outputs.LABEL_SELECTOR }}
       APP_NAMES: ${{ steps.vars.outputs.APP_NAMES }}
-      NEW_TAG: ${{ steps.tag.outputs.NEW_TAG }}
+      NEW_TAG: ${{ steps.vars.outputs.NEW_TAG }}
       AWS_ACCOUNT_ID: ${{ steps.set-account.outputs.AWS_ACCOUNT_ID }}
       ECR_REGISTRY: ${{ steps.registry.outputs.ECR_REGISTRY }}
     steps:
@@ -116,27 +117,18 @@ jobs:
           echo "PRD_TRIGGER_TOKEN=PRD_TRIGGER_TOKEN" >> $GITHUB_OUTPUT
 
           echo "SSH_PRIVATE_KEY=SSH_PRIVATE_KEY" >> $GITHUB_OUTPUT
+          echo "NEW_TAG=$GITHUB_SHA >> $GITHUB_OUTPUT
+          
       - name: Output Branch name
         run: >
           echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
+          
       - name: Checkout repository on ${{ github.event.inputs.BRANCH }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.BRANCH }}
-      - name: Create a new tag version
-        id: tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          NEW_TAG=$(echo "v$(($(git tag -l 'v*' --sort=-v:refname | head -n 1 | cut
-          -c 2-)+1))")
-
-          git tag $NEW_TAG
-
-          git push origin $NEW_TAG
-
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+      
       - name: Determine AWS AccountID based on environment
         id: set-account
         run: |
@@ -355,7 +347,7 @@ jobs:
           
       - name: Deploy App Migrations
         run: |
-         IMAGE_TAG=$NEW_TAG
+         IMAGE_TAG=$GITHUB_SHA
          VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
 
          echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
