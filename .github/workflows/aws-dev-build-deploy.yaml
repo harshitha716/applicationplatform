@@ -1,4 +1,5 @@
 name: Build and Deploy
+
 on:
   workflow_dispatch:
     inputs:
@@ -63,17 +64,12 @@ on:
         options:
           - awsprd
           - dev
-  paths-ignore:
-    - helm/dev-values.yaml
-    - helm/prd-values.yaml
-    - helm/stg-values.yaml
-    - .github/workflows/*
 env:
   APP_NAME: hcp
 jobs:
   prepare-env:
     name: Prepare Env
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
@@ -190,7 +186,7 @@ jobs:
           - hcp-api-worker-default
           - hcp-api-worker-ops
     name: Build and Push Image
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     env:
       BRANCH: ${{ github.event.inputs.BRANCH }}
       ENVIRONMENT: ${{ github.event.inputs.ENVIRONMENT }}
