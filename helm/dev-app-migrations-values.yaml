@@ -21,7 +21,7 @@ default:
   replicaCount: 1
   image:
     repository: 842675998483.dkr.ecr.us-east-2.amazonaws.com/harshitha
-    tag: v1
+    tag: 
     imagePullPolicy: Always
   signoz:
     enabled: true
