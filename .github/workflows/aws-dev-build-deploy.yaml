@@ -361,16 +361,16 @@ jobs:
 
           echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
 
-          helm repo add application s3://${HELM_REPOSITORY} && helm repo update
-
+          helm repo add application s3://${HELM_REPOSITORY} 
+          helm repo update
           helm upgrade --install ${APP_NAME} application/${HELM_CHART_NAME} \
-          --namespace ${K8S_NAMESPACE} \
+          --namespace ${NAMESPACE} \
           --set default.image.repository="${ECR_REPO}" \
           --set default.image.tag="${IMAGE_TAG}" \
           --values helm/${BUILD_ENV}-app-migrations-values.yaml \
           --wait \
           --timeout 12m0s \
-          --create-namespace
+          --force
 
           
           # Check if the job completed successfully
