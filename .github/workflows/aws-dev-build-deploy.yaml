@@ -239,7 +239,7 @@ jobs:
             DOCKERFILE="Dockerfile"
             DIR_PATH="./services/${APP_NAME#hcp-}"
           fi
-          IMAGE_TAG=$GITHUB_SHA
+          IMAGE_TAG=$NEW_TAG
           echo "Building ${APP_NAME} with image tag ${IMAGE_TAG}"
           cd $DIR_PATH
           docker build -t $ECR_REPO:$IMAGE_TAG .
