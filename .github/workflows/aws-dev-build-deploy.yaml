@@ -52,6 +52,7 @@ on:
         options:
           - zamp-prd-uae-helmcharts
           - zamp-dev-us-helmcharts
+          - zamp-dev-sg-helm-repository
       ECR_REPO:
         description: ECR repo name
         required: true
@@ -360,9 +361,9 @@ jobs:
 
           echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
 
-          helm repo add ${K8S_NAMESPACE}-repo s3://${HELM_REPOSITORY} && helm repo update
+          helm repo add application s3://${HELM_REPOSITORY} && helm repo update
 
-          helm upgrade --install ${APP_NAME} ${K8S_NAMESPACE}-repo/${HELM_CHART_NAME} \
+          helm upgrade --install ${APP_NAME} application/${HELM_CHART_NAME} \
           --namespace ${K8S_NAMESPACE} \
           --set default.image.repository="${ECR_REPO}" \
           --set default.image.tag="${IMAGE_TAG}" \
