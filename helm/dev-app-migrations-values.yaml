@@ -38,7 +38,7 @@ default:
         dataFrom:
           secretKey: zamp-dev-sg-hcp-secrets-env
         refreshInterval: 10m
-        secretStoreName: gcp-secret-manager
+        secretStoreName: zamp-prd-uae-clustersecretstore
     volumeMount:
       enabled: true
 job:
