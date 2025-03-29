@@ -1,0 +1,301 @@
+version: '3.7'
+
+services:
+  #### database and migrations
+  postgres:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+  
+  # Redis service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redispassword
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redispassword", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+  
+  platform-migrate:
+    build:
+      context: ./services/platform-migrations
+    environment:
+      PG_DATABASE_URL: ${PG_DATABASE_URL}
+      ENVIRONMENT: ${ENVIRONMENT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+  app-migrate:
+    build:
+      context: ./services/app-migrations
+    environment:
+      PG_DATABASE_URL: ${PG_DATABASE_URL}
+      ENVIRONMENT: ${ENVIRONMENT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      platform-migrate:
+        condition: service_started
+      auth:
+        condition: service_started
+  
+  #### Auth service
+  auth:
+    build:
+      context: ./services/auth
+    ports:
+      - "4433:4433"
+      - "4434:4434"
+    environment:
+      - DSN=${DSN}
+      - LOGOUT_AFTER_DEFAULT_BROWSER_RETURN_URL=${LOGOUT_AFTER_DEFAULT_BROWSER_RETURN_URL}
+      - SELFSERVICE_DEFAULT_BROWSER_RETURN_URL=${SELFSERVICE_DEFAULT_BROWSER_RETURN_URL}
+      - SELFSERVICE_ALLOWED_RETURN_URLS=${SELFSERVICE_ALLOWED_RETURN_URLS}
+      - COURIER_SMTP_CONNECTION_URI=${COURIER_SMTP_CONNECTION_URI}
+      - SECRETS_DEFAULT=${SECRETS_DEFAULT}
+      - SERVE_PUBLIC_BASE_URL=${SERVE_PUBLIC_BASE_URL}
+      - SERVE_ADMIN_BASE_URL=${SERVE_ADMIN_BASE_URL}
+      - SELFSERVICE_FLOWS_LOGIN_AFTER_OIDC_DEFAULT_BROWSER_RETURN_URL=${SELFSERVICE_FLOWS_LOGIN_AFTER_OIDC_DEFAULT_BROWSER_RETURN_URL}
+      - SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_DEFAULT_BROWSER_RETURN_URL=${SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_DEFAULT_BROWSER_RETURN_URL}
+      - SELFSERVICE_FLOWS_ERROR_UI_URL=${SELFSERVICE_FLOWS_ERROR_UI_URL}
+      - SELFSERVICE_METHODS_OIDC_CONFIG_BASE_REDIRECT_URL=${SELFSERVICE_METHODS_OIDC_CONFIG_BASE_REDIRECT_URL}
+      - SELFSERVICE_METHODS_OIDC_CONFIG_PROVIDERS=${SELFSERVICE_METHODS_OIDC_CONFIG_PROVIDERS}
+      - SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_HOOKS_0_CONFIG_URL=${SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_HOOKS_0_CONFIG_URL}
+      - SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_HOOKS_0_CONFIG_HEADERS=${SELFSERVICE_FLOWS_REGISTRATION_AFTER_OIDC_HOOKS_0_CONFIG_HEADERS}
+      - SELFSERVICE_FLOWS_REGISTRATION_AFTER_PASSWORD_HOOKS_0_CONFIG_URL=${SELFSERVICE_FLOWS_REGISTRATION_AFTER_PASSWORD_HOOKS_0_CONFIG_URL}
+      - SELFSERVICE_FLOWS_REGISTRATION_AFTER_PASSWORD_HOOKS_0_CONFIG_HEADERS=${SELFSERVICE_FLOWS_REGISTRATION_AFTER_PASSWORD_HOOKS_0_CONFIG_HEADERS}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ### Backend API service
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "2345:2345"
+    environment:
+      - PG_DATABASE_URL_APP=${PG_DATABASE_URL_APP}
+      - AUTH_HOST=${AUTH_HOST}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - PANTHEON_URL=${PANTHEON_URL}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - CONTROL_PLANE_ADMIN_SECRETS=${CONTROL_PLANE_ADMIN_SECRETS}
+      - DATAPLATFORM_CONFIG=${DATAPLATFORM_CONFIG}
+      - TEMPORAL_HOST=${TEMPORAL_HOST}
+      - TEMPORAL_NAMESPACE=${TEMPORAL_NAMESPACE}
+      - GCP_ACCESS_ID=${GCP_ACCESS_ID}
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_DEFAULT_BUCKET_NAME=${AWS_DEFAULT_BUCKET_NAME}
+      - DATAPLATFORM_PROVIDER=${DATAPLATFORM_PROVIDER}
+      - SPARKPOST_API_KEY=${SPARKPOST_API_KEY}
+      - SPARKPOST_API_URL=${SPARKPOST_API_URL}
+      - EMAIL_TEMPLATES_PATH=${EMAIL_TEMPLATES_PATH}
+      - ZAMP_EMAIL_UPDATES_FROM=${ZAMP_EMAIL_UPDATES_FROM}
+      # Redis connection details
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispassword
+      - REDIS_DB=0
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+    depends_on:
+      - postgres
+      - auth
+      - app-migrate
+      - temporal
+      - redis
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://api:8080/health"]
+    #   interval: 1m30s
+    #   timeout: 30s
+    #   retries: 5
+    #   start_period: 30s
+
+  ### API Worker
+  api-worker-default:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile.worker.default
+    environment:
+      - PG_DATABASE_URL_APP=${PG_DATABASE_URL_APP}
+      - AUTH_HOST=${AUTH_HOST}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - PANTHEON_URL=${PANTHEON_URL}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - CONTROL_PLANE_ADMIN_SECRETS=${CONTROL_PLANE_ADMIN_SECRETS}
+      - DATAPLATFORM_CONFIG=${DATAPLATFORM_CONFIG}
+      - TEMPORAL_HOST=${TEMPORAL_HOST}
+      - TEMPORAL_NAMESPACE=${TEMPORAL_NAMESPACE}
+      - GCP_ACCESS_ID=${GCP_ACCESS_ID}
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_DEFAULT_BUCKET_NAME=${AWS_DEFAULT_BUCKET_NAME}
+      - DATAPLATFORM_PROVIDER=${DATAPLATFORM_PROVIDER}
+      - SPARKPOST_API_KEY=${SPARKPOST_API_KEY}
+      - SPARKPOST_API_URL=${SPARKPOST_API_URL}
+      - EMAIL_TEMPLATES_PATH=${EMAIL_TEMPLATES_PATH}
+      - ZAMP_EMAIL_UPDATES_FROM=${ZAMP_EMAIL_UPDATES_FROM}
+      # Redis connection details
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispassword
+      - REDIS_DB=0
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+    depends_on:
+      - temporal
+      - redis
+
+  api-worker-ops:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile.worker.ops
+    environment:
+      - PG_DATABASE_URL_APP=${PG_DATABASE_URL_APP}
+      - AUTH_HOST=${AUTH_HOST}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - PANTHEON_URL=${PANTHEON_URL}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - CONTROL_PLANE_ADMIN_SECRETS=${CONTROL_PLANE_ADMIN_SECRETS}
+      - DATAPLATFORM_CONFIG=${DATAPLATFORM_CONFIG}
+      - TEMPORAL_HOST=${TEMPORAL_HOST}
+      - TEMPORAL_NAMESPACE=${TEMPORAL_NAMESPACE}
+      - GCP_ACCESS_ID=${GCP_ACCESS_ID}
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_DEFAULT_BUCKET_NAME=${AWS_DEFAULT_BUCKET_NAME}
+      - DATAPLATFORM_PROVIDER=${DATAPLATFORM_PROVIDER}
+      - SPARKPOST_API_KEY=${SPARKPOST_API_KEY}
+      - SPARKPOST_API_URL=${SPARKPOST_API_URL}
+      - EMAIL_TEMPLATES_PATH=${EMAIL_TEMPLATES_PATH}
+      - ZAMP_EMAIL_UPDATES_FROM=${ZAMP_EMAIL_UPDATES_FROM}
+    depends_on:
+      - temporal
+  dashboard:
+    build:
+      context: ./services/dashboard
+      args:
+        - ENVIRONMENT=${ENVIRONMENT}
+    ports: 
+      - "3000:3000"
+
+  temporal:
+    container_name: temporal
+    depends_on:
+      - postgres
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgrespassword
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=/etc/temporal/config/dynamicconfig/development-sql.yaml
+    image: temporalio/auto-setup:1.26.2
+    ports:
+      - 7233:7233
+    volumes:
+      - ./localdev/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+    healthcheck:
+      test:
+        ["CMD", "tctl", "--address", "temporal:7233", "workflow", "list"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:1.26.2
+    stdin_open: true
+    tty: true
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: temporalio/ui:2.31.2
+    ports:
+      - 8888:8080
+
+  #### Development utility services
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "8025:8025" # Web UI
+  adminer:
+    image: adminer
+    ports:
+      - "4040:8080"
+    depends_on:
+      - postgres
+  # Redis management UI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:redispassword
+    depends_on:
+      - redis
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+  seeds:
+    build: ./localdev/seeds
+    environment:
+      - AUTH_ADMIN_HOST=http://auth:4433
+      - PG_DATABASE_URL_APP=${PG_DATABASE_URL_APP}
+      - PG_MAX_OPEN_CONNECTIONS=${PG_MAX_OPEN_CONNECTIONS}
+      - PG_MAX_IDLE_CONNECTIONS=${PG_MAX_IDLE_CONNECTIONS}
+      - CONTROL_PLANE_ADMIN_SECRETS=${CONTROL_PLANE_ADMIN_SECRETS}
+      - API_BASE_URL=http://api:8080
+      - MODE=${MODE}
+    depends_on:
+      - api
+      - auth
+volumes:
+  db_data:
+  redis_data:

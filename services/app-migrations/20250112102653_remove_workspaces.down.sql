@@ -1,0 +1,2 @@
+-- skip down migration because it is meaningless
+-- We are deleting a table in the up migration, so we cannot undo it in the down migration, since we lose data

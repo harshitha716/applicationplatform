@@ -1,0 +1,612 @@
+.f-40-500 {
+  font-weight: 500;
+  line-height: 45px;
+  font-size: 40px;
+}
+
+.f-h1-32-400 {
+  font-weight: 400;
+  line-height: 40px;
+  font-size: 32px;
+}
+
+.f-40-800 {
+  font-weight: 800;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-40-700 {
+  font-weight: 700;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-40-600 {
+  font-weight: 600;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-40-500 {
+  font-weight: 500;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-40-400 {
+  font-weight: 400;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-40-300 {
+  font-weight: 300;
+  line-height: 3.125rem;
+  font-size: 2.5rem;
+}
+
+.f-36-800 {
+  font-weight: 800;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+
+.f-36-700 {
+  font-weight: 700;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+.f-36-600 {
+  font-weight: 600;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+
+.f-36-500 {
+  font-weight: 500;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+
+.f-36-400 {
+  font-weight: 400;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+
+.f-36-300 {
+  font-weight: 300;
+  line-height: 2.813rem;
+  font-size: 2.25rem;
+}
+
+.f-32-800 {
+  font-weight: 800;
+  line-height: 2.688rem;
+  font-size: 2rem;
+}
+
+.f-32-700 {
+  font-weight: 700;
+  line-height: 2.375rem;
+  font-size: 2rem;
+}
+
+.f-32-600 {
+  font-weight: 600;
+  line-height: 2.375rem;
+  font-size: 2rem;
+}
+
+.f-32-500 {
+  font-weight: 500;
+  line-height: 2.625rem;
+  font-size: 2rem;
+}
+
+.f-32-400 {
+  font-weight: 400;
+  line-height: 2.625rem;
+  font-size: 2rem;
+}
+
+.f-32-300 {
+  font-weight: 300;
+  line-height: 2.625rem;
+  font-size: 2rem;
+}
+
+.f-28-700 {
+  font-weight: 700;
+  line-height: 2.188rem;
+  font-size: 1.75rem;
+}
+
+.f-28-600 {
+  font-weight: 600;
+  line-height: 2.188rem;
+  font-size: 1.75rem;
+}
+
+.f-28-500 {
+  font-weight: 500;
+  line-height: 2.188rem;
+  font-size: 1.75rem;
+}
+
+.f-28-400 {
+  font-weight: 400;
+  line-height: 2.188rem;
+  font-size: 1.75rem;
+}
+
+.f-28-300 {
+  font-weight: 300;
+  line-height: 2.188rem;
+  font-size: 1.75rem;
+}
+
+.f-24-700 {
+  font-weight: 700;
+  line-height: 1.813rem;
+  font-size: 1.5rem;
+}
+
+.f-24-600 {
+  font-weight: 600;
+  line-height: 1.813rem;
+  font-size: 1.5rem;
+}
+
+.f-24-500 {
+  font-weight: 500;
+  line-height: 2rem;
+  font-size: 1.5rem;
+}
+
+.f-24-450 {
+  font-weight: 450;
+  line-height: 2rem;
+  font-size: 1.5rem;
+}
+
+.f-24-400 {
+  font-weight: 400;
+  line-height: 2rem;
+  font-size: 1.5rem;
+}
+
+.f-24-300 {
+  font-weight: 300;
+  line-height: 2rem;
+  font-size: 1.5rem;
+}
+
+.f-22-700 {
+  font-weight: 700;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+}
+
+.f-22-600 {
+  font-weight: 600;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+}
+
+.f-22-500 {
+  font-weight: 500;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+}
+
+.f-22-400 {
+  font-weight: 400;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+}
+.f-22-300 {
+  font-weight: 300;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+}
+
+.f-21-700 {
+  font-weight: 700;
+  line-height: 1.625rem;
+  font-size: 1.313rem;
+}
+
+.f-21-600 {
+  font-weight: 600;
+  line-height: 1.625rem;
+  font-size: 1.313rem;
+}
+
+.f-21-500 {
+  font-weight: 500;
+  line-height: 1.625rem;
+  font-size: 1.313rem;
+}
+
+.f-21-400 {
+  font-weight: 400;
+  line-height: 1.625rem;
+  font-size: 1.313rem;
+}
+
+.f-20-700 {
+  font-weight: 700;
+  line-height: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.f-20-600 {
+  font-weight: 600;
+  line-height: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.f-20-500 {
+  font-weight: 500;
+  line-height: 1.688rem;
+  font-size: 1.25rem;
+}
+
+.f-20-400 {
+  font-weight: 400;
+  line-height: 1.688rem;
+  font-size: 1.25rem;
+}
+
+.f-20-300 {
+  font-weight: 300;
+  line-height: 1.688rem;
+  font-size: 1.25rem;
+}
+
+.f-19-700 {
+  font-weight: 700;
+  line-height: 1.5rem;
+  font-size: 1.1875rem;
+}
+
+.f-19-600 {
+  font-weight: 600;
+  line-height: 1.5rem;
+  font-size: 1.1875rem;
+}
+
+.f-19-500 {
+  font-weight: 500;
+  line-height: 1.5rem;
+  font-size: 1.1875rem;
+}
+
+.f-19-400 {
+  font-weight: 400;
+  line-height: 1.5rem;
+  font-size: 1.1875rem;
+}
+
+.f-19-300 {
+  font-weight: 300;
+  line-height: 1.5rem;
+  font-size: 1.1875rem;
+}
+
+.f-18-700 {
+  font-weight: 700;
+  line-height: 1.4375rem;
+  font-size: 1.125rem;
+}
+
+.f-18-600 {
+  font-weight: 600;
+  line-height: 1.4375rem;
+  font-size: 1.125rem;
+}
+
+.f-18-500 {
+  font-weight: 500;
+  line-height: 1.438rem;
+  font-size: 1.125rem;
+}
+
+.f-18-450 {
+  font-weight: 450;
+  line-height: 1.438rem;
+  font-size: 1.125rem;
+}
+
+.f-18-400 {
+  font-weight: 400;
+  line-height: 1.438rem;
+  font-size: 1.125rem;
+}
+
+.f-18-300 {
+  font-weight: 300;
+  line-height: 1.438rem;
+  font-size: 1.125rem;
+}
+
+.f-17-700 {
+  font-weight: 700;
+  line-height: 1.3125rem;
+  font-size: 1.0625rem;
+}
+
+.f-17-600 {
+  font-weight: 600;
+  line-height: 1.3125rem;
+  font-size: 1.0625rem;
+}
+
+.f-17-500 {
+  font-weight: 500;
+  line-height: 1.3125rem;
+  font-size: 1.0625rem;
+}
+
+.f-17-400 {
+  font-weight: 400;
+  line-height: 1.3125rem;
+  font-size: 1.0625rem;
+}
+.f-17-300 {
+  font-weight: 300;
+  line-height: 1.3125rem;
+  font-size: 1.0625rem;
+}
+
+.f-16-700 {
+  font-weight: 700;
+  line-height: 1.25rem;
+  font-size: 1rem;
+}
+
+.f-16-600 {
+  font-weight: 600;
+  line-height: 1.25rem;
+  font-size: 1rem;
+}
+
+.f-16-550 {
+  font-weight: 550;
+  line-height: 1.313rem;
+  font-size: 1rem;
+}
+
+.f-16-500 {
+  font-weight: 500;
+  line-height: 1.313rem;
+  font-size: 1rem;
+}
+
+.f-16-400 {
+  font-weight: 400;
+  line-height: 1.313rem;
+  font-size: 1rem;
+}
+
+.f-16-300 {
+  font-weight: 300;
+  line-height: 1.188rem;
+  font-size: 1rem;
+}
+
+.f-15-700 {
+  font-weight: 700;
+  line-height: 1.1875rem;
+  font-size: 0.9375rem;
+}
+
+.f-15-600 {
+  font-weight: 600;
+  line-height: 1.1875rem;
+  font-size: 0.9375rem;
+}
+
+.f-15-500 {
+  font-weight: 500;
+  line-height: 1.1875rem;
+  font-size: 0.9375rem;
+}
+
+.f-15-400 {
+  font-weight: 400;
+  line-height: 1.1875rem;
+  font-size: 0.9375rem;
+}
+.f-15-300 {
+  font-weight: 300;
+  line-height: 1.1875rem;
+  font-size: 0.9375rem;
+}
+
+.f-14-700 {
+  font-weight: 700;
+  line-height: 1.125rem;
+  font-size: 0.875rem;
+}
+
+.f-14-600 {
+  font-weight: 600;
+  line-height: 1.125rem;
+  font-size: 0.875rem;
+}
+
+.f-14-500 {
+  font-weight: 500;
+  line-height: 1.125rem;
+  font-size: 0.875rem;
+}
+
+.f-14-400 {
+  font-weight: 400;
+  line-height: 1.188rem;
+  font-size: 0.875rem;
+}
+
+.f-14-300 {
+  font-weight: 300;
+  line-height: 1.125rem;
+  font-size: 0.875rem;
+}
+
+.f-13-700 {
+  font-weight: 700;
+  line-height: 1rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-600 {
+  font-weight: 600;
+  line-height: 1rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-500 {
+  font-weight: 500;
+  line-height: 1.0625rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-550 {
+  font-weight: 550;
+  line-height: 1.0625rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-450 {
+  font-weight: 450;
+  line-height: 1rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-400 {
+  font-weight: 400;
+  line-height: 1rem;
+  font-size: 0.8125rem;
+}
+
+.f-13-300 {
+  font-weight: 300;
+  line-height: 1.0625rem;
+  font-size: 0.8125rem;
+}
+
+.f-12-700 {
+  font-weight: 700;
+  line-height: 0.9375rem;
+  font-size: 0.75rem;
+}
+
+.f-12-600 {
+  font-weight: 600;
+  line-height: 0.875rem;
+  font-size: 0.75rem;
+}
+
+.f-12-500 {
+  font-weight: 500;
+  line-height: 0.9375rem;
+  font-size: 0.75rem;
+}
+
+.f-12-450 {
+  font-weight: 450;
+  line-height: 0.9375rem;
+  font-size: 0.75rem;
+}
+
+.f-12-400 {
+  font-weight: 400;
+  line-height: 0.9375rem;
+  font-size: 0.75rem;
+}
+
+.f-12-300 {
+  font-weight: 300;
+  line-height: 0.875rem;
+  font-size: 0.75rem;
+}
+.f-11-700 {
+  font-weight: 700;
+  line-height: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.f-11-600 {
+  font-weight: 600;
+  line-height: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.f-11-500 {
+  font-weight: 500;
+  line-height: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.f-11-400 {
+  font-weight: 400;
+  line-height: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.f-11-300 {
+  font-weight: 300;
+  line-height: 0.875rem;
+  font-size: 0.6875rem;
+}
+
+.f-11-300 {
+  font-weight: 300;
+  line-height: 13px;
+  font-size: 11px;
+}
+
+.f-11-400 {
+  font-weight: 400;
+  line-height: 13px;
+  font-size: 11px;
+}
+
+.f-10-300 {
+  font-weight: 300;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.f-10-400 {
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.f-10-500 {
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.f-10-600 {
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.f-9-600 {
+  font-weight: 600;
+  font-size: 9px;
+  line-height: 12px;
+}
+
+.f-8-400 {
+  font-weight: 400;
+  font-size: 8px;
+  line-height: 10px;
+}

@@ -1,0 +1,8 @@
+{
+  "cSpell.words": ["Zamp"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "eslint.codeActionsOnSave.rules": null
+}

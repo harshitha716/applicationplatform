@@ -1,0 +1,91 @@
+.rdrMonthName {
+  display: none !important;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.date-unit-container::-webkit-scrollbar {
+  display: none;
+}
+
+.rdrDefinedRangesWrapper {
+  display: none;
+}
+
+.rdrDateRangePickerWrapper {
+  width: 394px;
+}
+
+.rdrMonthAndYearPickers {
+  justify-content: flex-end !important;
+  flex-direction: row-reverse;
+  margin-bottom: 4px;
+}
+
+.rdrMonthAndYearPickers .rdrYearPicker,
+.rdrMonthAndYearPickers .rdrMonthPicker {
+  font-family: inherit !important;
+  font-weight: 300 !important;
+  font-size: 14px !important;
+}
+
+.rdrMonthAndYearPickers .rdrYearPicker select,
+.rdrMonthAndYearPickers .rdrMonthPicker select {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.rdrMonths .rdrMonth {
+  width: 100%;
+  padding: 8px 0px;
+  padding-bottom: 0;
+}
+
+.rdrMonthAndYearWrapper,
+.rdrMonthAndYearPickers {
+  height: 28px !important;
+}
+
+.rdrCalendarWrapper.rdrDateRangeWrapper {
+  width: 100%;
+}
+
+/* COLOR For Selected Range*/
+.rdrStartEdge {
+  color: #eef1ff !important;
+  border-radius: 24px 0 0 24px !important;
+}
+
+.rdrEndEdge {
+  color: #eef1ff !important;
+  border-radius: 0 24px 24px 0 !important;
+}
+
+.rdrStartEdge ~ .rdrDayNumber,
+.rdrEndEdge ~ .rdrDayNumber {
+  border-radius: 24px !important;
+  background: #2546f5 !important;
+}
+
+.rdrStartEdge ~ .rdrDayNumber {
+  border-radius: 24px !important;
+  background: #2546f5 !important;
+}
+
+.rdrInRange {
+  color: #eef1ff !important;
+}
+
+/* Color for text within selected range */
+.rdrInRange ~ .rdrDayNumber span {
+  color: black !important;
+}
+
+/* Color of hover state */
+.rdrDay > span:not(.rdrDayNumber):not(.rdrStartEdge):not(.rdrInRange):not(.rdrEndEdge) {
+  height: 26px;
+  margin-top: 2px;
+  color: #2546f5 !important;
+}

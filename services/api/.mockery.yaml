@@ -1,0 +1,12 @@
+---
+with-expecter: True
+filename: "{{ .InterfaceName | snakecase }}.go"
+outpkg: "mock_{{.PackageName}}"
+packages:
+  github.com/Zampfi/application-platform/services/api:
+    config:
+      dir: "mocks/{{.InterfaceDirRelative}}"
+      filename: "{{ .InterfaceName | snakecase }}_mock.go"
+      all: True
+      recursive: True
+      inpackage-suffix: True

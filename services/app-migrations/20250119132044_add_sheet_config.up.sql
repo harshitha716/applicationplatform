@@ -1,0 +1,1 @@
+ALTER TABLE app.sheets ADD COLUMN "sheet_config" jsonb NOT NULL DEFAULT '{}'::jsonb;

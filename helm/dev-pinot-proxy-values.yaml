@@ -1,0 +1,66 @@
+
+global:
+  service:
+    name: hcp-dev
+
+projectName: zamp  # required
+default:
+  annotations:
+    all:
+      app.kv.io/env: dev
+  labels:
+    all:
+      service-name: hcp-dev
+  resources:
+    request:
+      cpu: 50m
+      memory: 50Mi
+    limit:
+      memory: 100Mi
+  replicaCount: 1
+  image:
+    repository:
+    tag:
+    imagePullPolicy: Always
+  signoz:
+    enabled: true
+  configMaps:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: false
+  externalSecrets:
+    injection:
+      enabled: true
+      secrets:
+      - secretName: env
+        dataFrom:
+          secretKey: zamp-dev-sg-hcp-secrets-env
+        refreshInterval: 10m
+        secretStoreName: gcp-secret-manager
+    volumeMount:
+      enabled: true
+deployment:
+  - name: "pinot-proxy"
+    labels:
+      app.kubernetes.io/component: herm
+    service:
+      type: ClusterIP
+      ports:
+      - port: 8099
+        name: pinot-proxy
+    serviceAccount:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: zamp-dev-sg-hcp@development-351109.iam.gserviceaccount.com
+    containers:
+      - name: "pinot-proxy"
+        port: 8099
+        env:
+          POD_TYPE: "consumer"
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80

@@ -1,0 +1,78 @@
+global:
+  service:
+    name: hcp-stg
+
+projectName: zamp  # required
+default:
+  annotations:
+    all:
+      app.kv.io/env: stg
+  labels:
+    all:
+      service-name: hcp-stg
+  resources:
+    request:
+      cpu: 50m
+      memory: 480Mi
+    limit:
+      memory: 700Mi
+  replicaCount: 1
+  image:
+    repository:
+    tag:
+    imagePullPolicy: Always
+  signoz:
+    enabled: true
+  configMaps:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: false
+  externalSecrets:
+    injection:
+      enabled: true
+      secrets:
+      - secretName: env
+        dataFrom:
+          secretKey: zamp-stg-sg-hcp-secrets-env
+        refreshInterval: 10m
+        secretStoreName: gcp-secret-manager
+    volumeMount:
+      enabled: true
+      secrets:
+      - data:
+          - fileName: ".temporal-key"
+            mountPath: "/app/.temporal-key"
+            secretKey: zamp-stg-sg-temporal-cert-key
+        refreshInterval: 5m
+        secretStoreName: gcp-secret-manager
+        secretName: temporal-key
+      - data:
+          - fileName: ".temporal-cert"
+            mountPath: "/app/.temporal-cert"
+            secretKey: zamp-stg-sg-temporal-cert
+        refreshInterval: 5m
+        secretStoreName: gcp-secret-manager
+        secretName: temporal-cert
+deployment:
+  - name: "api"
+    service:
+      type: ClusterIP
+      ports:
+      - port: 8080
+        name: api
+    serviceAccount:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: zamp-stg-sg-hcp@staging-351109.iam.gserviceaccount.com
+    containers:
+      - name: "api"
+        port: 9000
+        env:
+          POD_TYPE: "consumer"
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80

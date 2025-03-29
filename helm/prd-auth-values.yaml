@@ -1,0 +1,68 @@
+global:
+  service:
+    name: hcp-prd
+
+projectName: zamp  # required
+default:
+  annotations:
+    all:
+      app.kv.io/env: prd
+  labels:
+    all:
+      service-name: hcp-prd
+  resources:
+    request:
+      cpu: 500m
+      memory: 500Mi
+    limit:
+      memory: 1000Mi
+      cpu: 800m
+  replicaCount: 1
+  image:
+    repository:
+    tag:
+    imagePullPolicy: Always
+  signoz:
+    enabled: true
+  configMaps:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: false
+  externalSecrets:
+    injection:
+      enabled: true
+      secrets:
+      - secretName: env
+        dataFrom:
+          secretKey: zamp-prd-us-hcp-secrets-env
+        refreshInterval: 10m
+        secretStoreName: gcp-secret-manager
+    volumeMount:
+      enabled: true
+deployment:
+  - name: "auth"
+    labels:
+      app.kubernetes.io/component: herm
+    service:
+      type: ClusterIP
+      ports:
+      - port: 4433
+        name: auth
+      - port: 4434
+        name: auth-admin
+    serviceAccount:
+        create: true
+        annotations:
+          iam.gke.io/gcp-service-account: zamp-prd-us-hcp@production-351109.iam.gserviceaccount.com
+    containers:
+      - name: "auth"
+        port: 9000
+        env:
+          POD_TYPE: "consumer"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80

@@ -1,0 +1,105 @@
+<html></html>
+
+<head>
+    <title>Admin Dashboard</title>
+    <script>
+
+
+        const getOrgId = () => window.sessionStorage.getItem("ZAMP_OPS_ORG_ID")
+        const getUserId = () => window.sessionStorage.getItem("ZAMP_OPS_USER_ID")
+        const getAdminSecret = () => window.sessionStorage.getItem("ZAMP_OPS_ADMIN_SECRET")
+        const getHeadersFromSession = () => {
+            const adminSecret = getAdminSecret()
+            const userId = getUserId()
+            const orgId = getOrgId()
+            return {
+                "X-Zamp-Admin-Secret": adminSecret,
+                "X-Zamp-User-Id": userId,
+                "X-Zamp-Organization-Ids": [orgId],
+                "Content-Type": "application/json"
+            }
+        }
+
+        const verifyAuthenticated = () => {
+
+            const organizationAudiences = fetch("/organizations/" + getOrgId() + "/audiences", {
+                headers: getHeadersFromSession()
+            }).then(response => {
+                response.json().then(data => {
+                    if (data.length > 0 && data.find(audience => audience.resource_audience_id === getUserId())) {
+                        // do nothing
+                    } else {
+                        //redirect to login page
+                        window.location.href = "/admin/login";
+                    }
+                })
+            }).catch(error => {
+                console.error("Error verifying authentication", error)
+                window.location.href = "/admin/login";
+            })
+        }
+
+        verifyAuthenticated();
+
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="container" class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div id="form-container" class="flex flex-col items-center justify-center w-full max-w-md p-8 bg-white rounded-xl shadow-xl transition-all duration-300 hover:shadow-2xl">
+            <h1 class="mb-2 text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">{{pre_process_title .}}</h1>
+            <p class="text-gray-600 font-medium mb-8 px-3 py-1 bg-blue-50 rounded-full">{{pre_process_environment .}}</p>
+            <form id="input-form" class="flex flex-col w-full space-y-5">
+                {{inputs_for .}}
+                <button type="submit" 
+                    class="px-6 py-3 text-white text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Submit
+                </button>
+            </form>
+        </div>
+        <div id="response-container" class="hidden">
+            <div id="response-content-container" class="w-full max-w-md p-8 mt-8 bg-white rounded-xl shadow-xl">
+                <p class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">Response</p>
+                <p class="text-gray-600 mb-3">Status: <span id="response-status" class="font-semibold"></span></p>
+                <pre class="mt-4 p-6 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto whitespace-pre-wrap text-gray-700">
+                    <code id="response-content" class="text-xs"></code>
+                </pre>
+            </div>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById("input-form")
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault()
+
+            const updatedForm = document.getElementById("input-form")
+            const formData = new FormData(updatedForm)
+            const formDataObject = Object.fromEntries(formData.entries())
+
+            document.getElementById("response-container").style.display = "none";
+
+            // disable submit button
+            document.querySelector("button[type='submit']").disabled = true;
+
+            fetch("{{pre_process_route .}}", {
+                method: "POST",
+                headers: getHeadersFromSession(),
+                body: JSON.stringify(formDataObject)
+            }).then(response => {
+
+                response.json().then(data => {
+                    document.getElementById("response-status").innerHTML = response.status;
+                    document.getElementById("response-content").innerHTML = JSON.stringify(data, null, 2);
+                    document.getElementById("response-container").style.display = "block";
+                })
+            }).finally(() => {
+                // enable submit button
+                document.querySelector("button[type='submit']").disabled = false;
+            })
+        })
+    </script>
+</body>
+
+</html> 

@@ -1,0 +1,1 @@
+-- nothing here becasue up migrations for drop tables are not meaningful

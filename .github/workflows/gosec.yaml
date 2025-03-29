@@ -1,0 +1,68 @@
+name: Go Sec Pipeline
+on:
+  # Triggers the workflow on push or pull request events but only for the "security-branch" branch
+  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
+    paths: 
+      - '**.go'
+
+env:
+  APP_NAME: banking
+
+jobs:
+  gosec-scan:
+    name: Go Sec Scan
+    runs-on: ubuntu-latest-m
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    env:
+      GO111MODULE: on
+      BUCKET_NAME: zamp-dev-sg-gosec-reports
+      GOPRIVATE: github.com/Zampfi/platform_modules
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/622745278345/locations/global/workloadIdentityPools/github-oidc-pool/providers/github-provider'
+          service_account: 'github-action-sa@development-351109.iam.gserviceaccount.com'
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+      - name: Add SSH Go Module Private Key
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV  
+      - name: Setup access for private go modules
+        run: |
+              git config --global url."ssh://git@github.com/".insteadOf https://github.com/
+
+      - name: Install gosec
+        run: |
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.17.0
+      - name: Run Gosec Security Scanner
+        run: |
+           $GITHUB_WORKSPACE/bin/gosec -fmt html -out test.html -severity medium -confidence medium ./...
+      - name: Upload report to gcs
+        if: always()
+        run: |
+          gsutil cp -r test.html gs://${{ env.BUCKET_NAME }}/${{ env.APP_NAME }}/${{github.event.pull_request.number}}/${GITHUB_RUN_NUMBER}-report.html
+
+      - uses: mshick/add-pr-comment@v2
+        if: always()
+        with:
+          message: |
+            Find the GoSec Scan report in https://console.cloud.google.com/storage/browser/_details/${{ env.BUCKET_NAME }}/${{ env.APP_NAME }}/${{github.event.pull_request.number}}/${{github.run_number}}-report.html?project=development-351109

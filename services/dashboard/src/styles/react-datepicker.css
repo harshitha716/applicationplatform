@@ -1,0 +1,14 @@
+.react-datepicker__day-names {
+  display: flex !important;
+  justify-content: space-around;
+  padding: 0 8px;
+  background-color: white;
+}
+
+.react-datepicker__month-container {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 4px;
+  background-color: white;
+}

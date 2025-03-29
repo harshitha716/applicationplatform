@@ -1,0 +1,65 @@
+export const API_ENDPOINTS = {
+  MEMBERSHIP_REQUESTS_ALL_GET: `organizations/membership-requests`,
+  INVITE_AUDIENCES_BY_ORGANIZATION_ID_POST: `organizations/{{organizationId}}/audiences/invitations`,
+  INVITED_AUDIENCES_BY_ORGANIZATION_ID_GET: `organizations/{{organizationId}}/audiences/invitations`,
+  AUDIENCES_BY_ORGANIZATION_ID_GET: `organizations/{{organizationId}}/audiences`,
+  CHANGE_AUDIENCE_ROLE_IN_ORGANIZATION_PATCH: `organizations/{{organizationId}}/audiences`,
+  DELETE_AUDIENCE_FROM_ORGANIZATION_ACCESS: `organizations/{{organizationId}}/audiences`,
+  MEMBERSHIP_REQUESTS_BY_ORGANIZATION_ID_GET: `organizations/{{organizationId}}/requests`,
+  AUTH_INITIATE_LOGIN_FLOW_GET: `auth/relay/self-service/login/browser`,
+  AUTH_INITIATE_LOGOUT_FLOW_GET: `auth/relay/self-service/logout/browser`,
+  AUTH_INITIAL_LOGIN_FLOW_BY_EMAIL_POST: `auth/login/flow/create`,
+  USER_WHOAMI_GET: 'auth/whoami',
+  AUTH_ERROR_DETAILS_GET: `auth/relay/internal/self-service/errors`,
+  TEAMS_BY_ORGANIZATION_ID_GET: `organizations/{{organizationId}}/teams`,
+  TEAMS_BY_ORGANIZATION_ID_POST: `organizations/{{organizationId}}/teams`,
+  ALL_TEAMS_BY_TEAM_ID_GET: `organizations/{{organizationId}}/teams/{{teamId}}`,
+  ADD_TEAMS_TO_AUDIENCE_POST: `organizations/{{organizationId}}/teams/{{teamId}}/add`,
+  REMOVE_TEAMS_FROM_AUDIENCE_POST: `organizations/{{organizationId}}/teams/{{teamId}}/remove`,
+
+  DATASET_FILTER_CONFIG_GET: `datasets/{{datasetId}}/filter-config`,
+  DATASET_DATA_GET: `datasets/{{datasetId}}/data`,
+  DATASET_EXPORT_GET: `datasets/{{datasetId}}/export`,
+  DATASET_DRILLDOWN_GET: `datasets/{{datasetId}}/drill-down/row/{{rowId}}`,
+  DATASET_LISTING_GET: `datasets/listing`,
+  AUDIENCES_BY_DATASET_ID_GET: `datasets/{{datasetId}}/audiences`,
+  SHARE_DATASET_TO_AUDIENCES_BY_DATASET_ID_POST: `datasets/{{datasetId}}/audiences`,
+  DATASET_UPDATE_POST: `datasets/{{datasetId}}/update-data`,
+  DATASET_ACTION_STATUS_GET: `datasets/{{datasetId}}/actions`,
+  DATASET_EXPORTS_SIGNED_URL_GET: `datasets/{{datasetId}}/signed-url/{{workflowId}}`,
+  CHANGE_AUDIENCE_ROLE_IN_DATASET_PATCH: `datasets/{{datasetId}}/audiences`,
+  DELETE_AUDIENCE_FROM_DATASET_ACCESS: `datasets/{{datasetId}}/audiences`,
+  DATASET_RULES_LISTING_GET: `datasets/rules/listing`,
+  DATASET_FILE_IMPORT_HISTORY_GET: `datasets/{{datasetId}}/file-imports/history`,
+
+  // admin
+  ADMIN_DATASET_DISPLAY_CONFIG_GET: `datasets/{{datasetId}}/display-config`,
+  ADMIN_DATASET_DISPLAY_CONFIG_POST: `datasets/{{datasetId}}/display-config`,
+
+  // file-import
+  DATASET_SIGNED_UPLOAD_URL_POST: `datasets/file-imports/init`,
+  DATASET_FILE_IMPORTS_ACTION_ID: `datasets/file-imports/{{file_upload_id}}`,
+  DATASET_FILE_IMPORTS_PREVIEW_TRANSFORMATION_GET: `datasets/file-imports/{{file_upload_id}}/preview`,
+  DATASET_FILE_IMPORTS_PREVIEW_TRANSFORMATION_CONFIRM_POST: `datasets/file-imports/{{file_upload_id}}/confirm`,
+
+  DATASET_RULES_BY_RULE_IDS_GET: `datasets/rules/ids`,
+  DATASET_RULES_PRIORITY_PATCH: `datasets/rules/priority`,
+  WIDGET_INSTANCE_GET: `widgets/{{widgetId}}/instance`,
+  WIDGET_DATA_GET: `widgets/{{widgetId}}/data`,
+
+  PAGES_GET: `pages/get-pages`,
+  PAGES_SHEETS_GET: `pages/{{pageId}}`,
+  PAGES_SHEETS_SHEET_GET: `pages/{{pageId}}/sheets/{{sheetId}}`,
+  PAGES_SHEETS_FILTER_CONFIG_GET: `pages/{{pageId}}/sheets/{{sheetId}}/filters`,
+  AUDIENCES_BY_PAGE_ID_GET: `pages/{{pageId}}/audiences`,
+  SHARE_PAGE_TO_AUDIENCES_BY_PAGE_ID_POST: `pages/{{pageId}}/audiences`,
+  CHANGE_AUDIENCE_ROLE_IN_PAGE_PATCH: `pages/{{pageId}}/audiences`,
+  DELETE_AUDIENCE_FROM_PAGE_ACCESS: `pages/{{pageId}}/audiences`,
+};
+
+export const enum REQUEST_TYPES {
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
+}

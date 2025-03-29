@@ -1,0 +1,432 @@
+name: Build and Deploy to Production
+
+on:
+  repository_dispatch:
+    types: [deploy-prod]
+  workflow_dispatch:
+    
+    
+env: 
+  APP_NAME: hcp
+  GITHUB_ACTOR_SLACK:  ${{ github.event.client_payload.github_actor }}
+  NEW_TAG: ${{ github.event.client_payload.new_tag }}
+jobs:
+  prepare-env:
+    name: Prepare Env
+    runs-on: ubuntu-latest-m
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 2
+    outputs:
+      GCP_WORKLOAD_IDENTITY_SA: ${{ steps.vars.outputs.GCP_WORKLOAD_IDENTITY_SA }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ steps.vars.outputs.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_REGION: ${{ steps.vars.outputs.GCP_REGION }}
+      GCP_PROJECT_ID: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
+      BUILD_ENV: ${{ steps.vars.outputs.BUILD_ENV }}
+      PROJECT_PREFIX: ${{ steps.vars.outputs.PROJECT_PREFIX }}
+      K8S_CLUSTER: ${{ steps.vars.outputs.K8S_CLUSTER }}
+      SLACK_WEBHOOK_URL: ${{ steps.vars.outputs.SLACK_WEBHOOK_URL }}  
+      K8S_NAMESPACE: ${{ steps.vars.outputs.K8S_NAMESPACE }}
+      HELM_CHART_NAME: ${{ steps.vars.outputs.HELM_CHART_NAME }}
+      HELM_REPOSITORY: ${{ steps.vars.outputs.HELM_REPOSITORY }}
+      APP_NAME: ${{ steps.vars.outputs.APP_NAME }}
+      STG_TRIGGER_TOKEN: ${{ github.event.client_payload.trigger_token }}
+      PRD_TRIGGER_TOKEN: ${{ steps.vars.outputs.TRIGGER_TOKEN }}
+      ENVIRONMENT: ${{ steps.vars.outputs.ENVIRONMENT }}
+      SSH_PRIVATE_KEY: ${{ steps.vars.outputs.SSH_PRIVATE_KEY }}
+    steps:
+    - id: vars
+      run: |
+          echo "GCP_WORKLOAD_IDENTITY_PROVIDER=projects/518036456173/locations/global/workloadIdentityPools/github-oidc-pool/providers/github-provider" >> $GITHUB_OUTPUT
+          echo "GCP_WORKLOAD_IDENTITY_SA=github-action-sa@production-351109.iam.gserviceaccount.com" >> $GITHUB_OUTPUT
+          echo "GCP_REGION=us-west1" >> $GITHUB_OUTPUT
+          echo "GCP_PROJECT_ID=production-351109" >> $GITHUB_OUTPUT
+          echo "BUILD_ENV=prd" >> $GITHUB_OUTPUT
+          echo "PROJECT_PREFIX=zamp-prd-us" >> $GITHUB_OUTPUT
+          echo "K8S_CLUSTER=zamp-prd-us-gke-cluster-usa" >> $GITHUB_OUTPUT
+          echo "SLACK_WEBHOOK_URL=PRD_SLACK_WEBHOOK_URL" >> $GITHUB_OUTPUT
+          echo "PRD_TRIGGER_TOKEN=PRD_TRIGGER_TOKEN" >> $GITHUB_OUTPUT
+          echo "ENVIRONMENT=production" >> $GITHUB_OUTPUT
+          echo "HELM_REPOSITORY=zamp-dev-sg-helm-repository/zamp-svc" >> $GITHUB_OUTPUT
+          echo "K8S_NAMESPACE=hcp" >> $GITHUB_OUTPUT
+          echo "HELM_CHART_NAME=zamp-svc" >> $GITHUB_OUTPUT
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "SSH_PRIVATE_KEY=SSH_PRIVATE_KEY" >> $GITHUB_OUTPUT
+
+    - name: Output Branch name
+      run: |
+          echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
+
+  build-push-image:
+    needs: 
+      - prepare-env
+    name: Build and Push Image
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest-m
+    strategy:
+      matrix:
+        app: [hcp-app-migrations, hcp-auth, hcp-api, hcp-dashboard]
+    env:
+      GCP_WORKLOAD_IDENTITY_PROVIDER : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+      GCP_WORKLOAD_IDENTITY_SA : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_SA}}
+      GCP_REGION : ${{needs.prepare-env.outputs.GCP_REGION}}
+      GCP_PROJECT_ID: ${{needs.prepare-env.outputs.GCP_PROJECT_ID}}
+      # APP_NAME : ${{needs.prepare-env.outputs.APP_NAME}}
+      ENVIRONMENT : ${{needs.prepare-env.outputs.ENVIRONMENT}}
+      PROJECT_PREFIX : ${{needs.prepare-env.outputs.PROJECT_PREFIX}}
+      STG_TRIGGER_TOKEN : ${{needs.prepare-env.outputs.STG_TRIGGER_TOKEN}}
+      PRD_TRIGGER_TOKEN : ${{needs.prepare-env.outputs.PRD_TRIGGER_TOKEN}}
+      SSH_PRIVATE_KEY: ${{needs.prepare-env.outputs.SSH_PRIVATE_KEY}}
+      
+    outputs:
+      IMAGE_TAG: ${{ steps.build.outputs.IMAGE_TAG }}
+      GAR_REPO: ${{ steps.build.outputs.GAR_REPO }}
+
+    steps:
+    - id: check-token
+      name: Verify Token
+      run: |
+          if [ "$STG_TRIGGER_TOKEN" != "${{ secrets[env.PRD_TRIGGER_TOKEN] }}" ] 
+          then
+          echo "CANCEL_PIPELINE=true" >> $GITHUB_OUTPUT
+          echo "Unauthorized!"
+          else
+          echo "CANCEL_PIPELINE=false" >> $GITHUB_OUTPUT
+          echo "Authorized!"
+          fi
+    - name: Cancel workflow !!
+      if: ${{ steps.check-token.outputs.CANCEL_PIPELINE == 'true' }}
+      uses: andymckay/cancel-action@0.2
+    - name: wait for the cancel operation
+      if: ${{ steps.check-token.outputs.CANCEL_PIPELINE == 'true'  }}
+      run: |
+          sleep 10
+    - name: 'Checkout repository on : ${{ env.NEW_TAG }}'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{env.NEW_TAG}}
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: '${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ env.GCP_WORKLOAD_IDENTITY_SA }}'
+      
+    - uses: 'docker/login-action@v3'
+      with:
+        registry: '${{ env.GCP_REGION }}-docker.pkg.dev'
+        username: 'oauth2accesstoken'
+        password: '${{ steps.auth.outputs.access_token }}'
+
+    - id: build
+      name: Build and Push Image
+      env:
+        GAR_REGISTRY: '${{ env.GCP_REGION }}-docker.pkg.dev'
+      run: |
+        APP_NAME=${{ matrix.app }}
+        DOCKERFILE="Dockerfile.${APP_NAME#hcp-}"
+        GAR_REPO="${GAR_REGISTRY}/${GCP_PROJECT_ID}/${PROJECT_PREFIX}-container-repo/${APP_NAME}"
+        IMAGE_TAG=$GITHUB_SHA
+        echo "Building ${APP_NAME} with image tag ${IMAGE_TAG}"
+        DIR_PATH="./services/${APP_NAME#hcp-}"
+        cd $DIR_PATH
+        docker build -t $GAR_REPO:$IMAGE_TAG --build-arg SSH_PRIVATE_KEY="${{secrets[env.SSH_PRIVATE_KEY]}}" --build-arg ENVIRONMENT="${{env.ENVIRONMENT}}" .
+        docker push $GAR_REPO:$IMAGE_TAG
+        echo "GAR_REPO=$GAR_REPO" >> $GITHUB_OUTPUT
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo ":whale2:App ${APP_NAME} Image Tag: ${IMAGE_TAG} " >> $GITHUB_STEP_SUMMARY
+        
+  clear-migration:
+    name: Clear Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+    needs: 
+      - prepare-env
+      - build-push-image
+    env:
+      GCP_WORKLOAD_IDENTITY_PROVIDER : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+      GCP_WORKLOAD_IDENTITY_SA : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_SA}}
+      GCP_REGION : ${{needs.prepare-env.outputs.GCP_REGION}}
+      HELM_REPOSITORY: ${{needs.prepare-env.outputs.HELM_REPOSITORY}}
+      HELM_CHART_NAME: ${{needs.prepare-env.outputs.HELM_CHART_NAME}}
+      K8S_NAMESPACE: ${{needs.prepare-env.outputs.K8S_NAMESPACE}}
+      K8S_CLUSTER: ${{needs.prepare-env.outputs.K8S_CLUSTER}}
+      BUILD_ENV: ${{needs.prepare-env.outputs.BUILD_ENV}}
+      GAR_REPO: asia-southeast1-docker.pkg.dev/production-351109/zamp-prd-sg-container-repo/${APP_NAME}
+      IMAGE_TAG: $GITHUB_SHA-$GITHUB_RUN_NUMBER
+      NEW_TAG: ${{needs.create-release.outputs.NEW_TAG}}
+      
+    steps:
+    - name: 'Checkout repository on : ${{ github.REF }}'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{env.NEW_TAG}}
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: '${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ env.GCP_WORKLOAD_IDENTITY_SA }}'
+
+    - uses: azure/setup-helm@v4
+      name: Install Helm
+      with:
+        version: 'v3.7.2' 
+
+    - uses: azure/setup-kubectl@v4
+      name: Install kubectl
+      with:
+        version: 'v1.22.0'
+        
+    - name: GKE config
+      id: 'get-credentials'
+      uses: 'google-github-actions/get-gke-credentials@v2'
+      with:
+        cluster_name: '${{ env.K8S_CLUSTER }}'
+        location: 'us-west1-a'
+
+    - name: Install helm gcs plugin
+      run: |
+        helm plugin install https://github.com/hayorov/helm-gcs.git --version 0.4.1
+        helm plugin update gcs
+    - name: Clear Migrations
+      run: |
+        helm uninstall hcp-app-migrations -n hcp --timeout 2m0s --wait 
+
+  deploy-app-migrations:
+    name: Deploy App Migrations to K8s
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+    needs: 
+      - prepare-env
+      - build-push-image
+      - clear-migration
+    env:
+      APP_NAME : hcp-app-migrations
+      GCP_WORKLOAD_IDENTITY_PROVIDER : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+      GCP_WORKLOAD_IDENTITY_SA : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_SA}}
+      GCP_REGION : ${{needs.prepare-env.outputs.GCP_REGION}}
+      HELM_REPOSITORY: ${{needs.prepare-env.outputs.HELM_REPOSITORY}}
+      HELM_CHART_NAME: ${{needs.prepare-env.outputs.HELM_CHART_NAME}}
+      K8S_NAMESPACE: ${{needs.prepare-env.outputs.K8S_NAMESPACE}}
+      K8S_CLUSTER: ${{needs.prepare-env.outputs.K8S_CLUSTER}}
+      BUILD_ENV: ${{needs.prepare-env.outputs.BUILD_ENV}}
+      GAR_REPO: asia-southeast1-docker.pkg.dev/production-351109/zamp-prd-sg-container-repo/hcp-app-migrations
+      IMAGE_TAG: $GITHUB_SHA-$GITHUB_RUN_NUMBER
+      NEW_TAG: ${{needs.create-release.outputs.NEW_TAG}}
+      
+    steps:
+    - name: 'Checkout repository on : ${{ github.REF }}'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{env.NEW_TAG}}
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: '${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ env.GCP_WORKLOAD_IDENTITY_SA }}'
+
+    - uses: azure/setup-helm@v4
+      name: Install Helm
+      with:
+        version: 'v3.7.2' 
+
+    - uses: azure/setup-kubectl@v4
+      name: Install kubectl
+      with:
+        version: 'v1.22.0'
+        
+    - name: GKE config
+      id: 'get-credentials'
+      uses: 'google-github-actions/get-gke-credentials@v2'
+      with:
+        cluster_name: '${{ env.K8S_CLUSTER }}'
+        location: 'us-west1-a'
+
+    - name: Install helm gcs plugin
+      run: |
+        helm plugin install https://github.com/hayorov/helm-gcs.git --version 0.4.1
+        helm plugin update gcs
+
+    - name: Deploy App Migrations
+      run: |
+        IMAGE_TAG=$GITHUB_SHA
+        VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
+        cat ${VALUES_FILE}
+        echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
+        helm repo add ${K8S_NAMESPACE}-repo gs://${HELM_REPOSITORY} && helm repo update
+        helm upgrade --install ${APP_NAME} ${K8S_NAMESPACE}-repo/${HELM_CHART_NAME} \
+            --namespace ${K8S_NAMESPACE} \
+            --set default.image.repository="${GAR_REPO}" \
+            --set default.image.tag="${IMAGE_TAG}" \
+            --values helm/${BUILD_ENV}-app-migrations-values.yaml \
+            --wait \
+            --timeout 10m0s \
+            --create-namespace
+        
+        # Check if the job completed successfully
+        echo "Checking job status for ${APP_NAME}..."
+        sleep 10 # Give some time for the job to start
+        
+        # Check if job exists
+        if ! kubectl get jobs zamp-hcp-app-migrations-app-migrations -n ${K8S_NAMESPACE} &> /dev/null; then
+          echo "Error: No job found for ${APP_NAME}"
+          exit 1
+        fi
+        
+        # Check if job failed
+        echo "Checking job status for ${APP_NAME}..."
+        JOB_STATUS=$(kubectl get jobs zamp-hcp-app-migrations-app-migrations -n ${K8S_NAMESPACE} -o=jsonpath='{.status.conditions[?(@.type=="Failed")].status}')
+        if [ "$JOB_STATUS" == "True" ]; then
+          echo "Error: Job ${APP_NAME} failed"
+          exit 1
+        fi
+        
+        echo "Job ${APP_NAME} is running successfully or has completed"
+
+
+
+  deploy-other-services:
+    strategy:
+      matrix:
+        app: [hcp-auth, hcp-api, hcp-dashboard]
+    name: Deploy Other Services to K8s
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+    needs: 
+      - prepare-env
+      - build-push-image
+      - deploy-app-migrations
+    env:
+      APP_NAME : ${{ matrix.app }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+      GCP_WORKLOAD_IDENTITY_SA : ${{needs.prepare-env.outputs.GCP_WORKLOAD_IDENTITY_SA}}
+      GCP_REGION : ${{needs.prepare-env.outputs.GCP_REGION}}
+      HELM_REPOSITORY: ${{needs.prepare-env.outputs.HELM_REPOSITORY}}
+      HELM_CHART_NAME: ${{needs.prepare-env.outputs.HELM_CHART_NAME}}
+      K8S_NAMESPACE: ${{needs.prepare-env.outputs.K8S_NAMESPACE}}
+      K8S_CLUSTER: ${{needs.prepare-env.outputs.K8S_CLUSTER}}
+      BUILD_ENV: ${{needs.prepare-env.outputs.BUILD_ENV}}
+      GAR_REPO: asia-southeast1-docker.pkg.dev/production-351109/zamp-prd-sg-container-repo/${APP_NAME}
+      IMAGE_TAG: $GITHUB_SHA-$GITHUB_RUN_NUMBER
+      NEW_TAG: ${{needs.create-release.outputs.NEW_TAG}}
+      
+    steps:
+    - name: 'Checkout repository on : ${{ github.REF }}'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{env.NEW_TAG}}
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: '${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ env.GCP_WORKLOAD_IDENTITY_SA }}'
+
+    - uses: azure/setup-helm@v4
+      name: Install Helm
+      with:
+        version: 'v3.7.2' 
+
+    - uses: azure/setup-kubectl@v4
+      name: Install kubectl
+      with:
+        version: 'v1.22.0'
+        
+    - name: GKE config
+      id: 'get-credentials'
+      uses: 'google-github-actions/get-gke-credentials@v2'
+      with:
+        cluster_name: '${{ env.K8S_CLUSTER }}'
+        location: 'us-west1-a'
+
+    - name: Install helm gcs plugin
+      run: |
+        helm plugin install https://github.com/hayorov/helm-gcs.git --version 0.4.1
+        helm plugin update gcs
+
+    - name: Deploy
+      run: |
+        IMAGE_TAG=$GITHUB_SHA
+        APP_NAME=${{ matrix.app }}
+        GAR_REPO=asia-southeast1-docker.pkg.dev/production-351109/zamp-prd-sg-container-repo/${APP_NAME}
+        VALUES_FILE=helm/${BUILD_ENV}-${APP_NAME#hcp-}-values.yaml
+        cat ${VALUES_FILE}
+        echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
+        helm repo add ${K8S_NAMESPACE}-repo gs://${HELM_REPOSITORY} && helm repo update
+        helm upgrade --install ${APP_NAME} ${K8S_NAMESPACE}-repo/${HELM_CHART_NAME} \
+            --namespace ${K8S_NAMESPACE} \
+            --set default.image.repository="${GAR_REPO}" \
+            --set default.image.tag="${IMAGE_TAG}" \
+            --values helm/${BUILD_ENV}-${APP_NAME#hcp-}-values.yaml \
+            --wait \
+            --timeout 10m0s \
+            --create-namespace
+
+  # Slack Alert
+
+  slack-notification:
+      name: Slack Notification
+      if: always()
+      runs-on: ubuntu-latest-m
+      needs:
+        - prepare-env
+        - build-push-image
+        - deploy-app-migrations
+        - deploy-other-services
+      env:
+       SLACK_WEBHOOK_URL: ${{needs.prepare-env.outputs.SLACK_WEBHOOK_URL}}
+       ENVIRONMENT: ${{needs.prepare-env.outputs.ENVIRONMENT}}
+      steps:
+      - uses: technote-space/workflow-conclusion-action@v3
+      - name: Update slack message body 
+        id: body
+        run: |
+          if [ '${{ env.WORKFLOW_CONCLUSION }}' == 'success' ]
+          then
+            echo "SLACK_MESSAGE=Success :white_check_mark:" >> $GITHUB_OUTPUT
+          elif [ '${{ env.WORKFLOW_CONCLUSION }}'  == 'failure' ]
+          then
+            echo "SLACK_MESSAGE=Failed :x:"   >> $GITHUB_OUTPUT
+          elif [ '${{ env.WORKFLOW_CONCLUSION }}'  == 'cancelled' ]
+          then
+            echo "SLACK_MESSAGE=Cancelled :grey_exclamation:"   >> $GITHUB_OUTPUT
+          fi
+      - name: Slack Notification
+        uses: Zampfi/town_crier@v1
+        env:
+          SLACK_COLOR: ${{ env.WORKFLOW_CONCLUSION }} # or a specific color like 'good' or '#ff00ff'
+          SLACK_ICON: https://media-exp1.licdn.com/dms/image/C4D0BAQEsXCky1jDBjw/company-logo_200_200/0/1650191766210?e=2147483647&v=beta&t=skUuL49MkcdxJZmEEN2wy5E7Xqy176Ar7EPsKoSMUEE
+          SLACK_MESSAGE: ${{ steps.body.outputs.SLACK_MESSAGE }}
+          SLACK_TITLE: Build Status
+          ZAMP_ENV: ${{ env.ENVIRONMENT }}
+          SLACK_FOOTER: '<${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>'
+          SLACK_USERNAME: Zamp-Devops
+          SLACK_WEBHOOK: ${{ secrets[env.SLACK_WEBHOOK_URL] }}
+          SLACK_MSG_AUTHOR: ${{ env.GITHUB_ACTOR_SLACK }}
+          GITHUB_CUSTOM_REF: refs/heads/${{env.NEW_TAG}}

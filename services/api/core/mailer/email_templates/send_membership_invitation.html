@@ -1,0 +1,219 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css">
+      /* latin */
+      @font-face {
+        font-family: "Outfit";
+        font-style: normal;
+        font-weight: 300;
+        font-display: swap;
+        src: url(//fonts.gstatic.com/s/outfit/v6/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2)
+          format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+          U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* latin */
+      @font-face {
+        font-family: "Outfit";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(//fonts.gstatic.com/s/outfit/v6/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2)
+          format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+          U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* latin */
+      @font-face {
+        font-family: "Outfit";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url(//fonts.gstatic.com/s/outfit/v6/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2)
+          format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+          U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* latin */
+      @font-face {
+        font-family: "Outfit";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url(//fonts.gstatic.com/s/outfit/v6/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2)
+          format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+          U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+
+      .table {
+        border-spacing: 0;
+        max-width: 600px;
+        padding-top: 40px;
+        font-family: "Outfit", sans-serif;
+      }
+
+      td {
+        padding: 6px 0;
+      }
+
+      @media screen and (max-width: 768px) {
+        .table {
+          max-width: 400px;
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body style="background-color: white; color: #181b28">
+    <table align="center" class="table">
+      <!-- for logo -->
+      <tr>
+        <td align="left" style="padding-bottom: 40px">
+          <img
+            src="https://storage.googleapis.com/zamp-prd-emailer-assets/zamp_black_2.png"
+            style="width: 100px"
+          />
+        </td>
+      </tr>
+      <!-- body -->
+      <tr>
+        <td style="color: #60616b; font-size: 14px; font-weight: 400">
+          Hello,
+        </td>
+      </tr>
+      <tr>
+        <td
+          style="
+            color: #60616b;
+            font-size: 14px;
+            font-weight: 400;
+            padding-top: 22px;
+          "
+        >
+          {{.invited_by_first_name}} has invited you to become a member of
+          <strong>{{.organization_name}}</strong> on Zamp.
+        </td>
+      </tr>
+      <tr>
+        <td style="color: #60616b; font-size: 14px; font-weight: 400">
+          <div
+            style="display: grid; justify-content: center; padding: 20px 0px"
+          >
+            <a
+              href="{{.invitation_link}}"
+              style="
+                width: fit-content;
+                background: #2546f5;
+                background-image: -webkit-linear-gradient(
+                  top,
+                  #2546f5,
+                  #2546f5
+                );
+                background-image: -moz-linear-gradient(top, #2546f5, #2546f5);
+                background-image: -ms-linear-gradient(top, #2546f5, #2546f5);
+                background-image: -o-linear-gradient(top, #2546f5, #2546f5);
+                background-image: linear-gradient(to bottom, #2546f5, #2546f5);
+                -webkit-border-radius: 28;
+                -moz-border-radius: 28;
+                border-radius: 28px;
+                font-family: Arial;
+                font-size: 15px;
+                padding: 3px 12px 3px 12px;
+                text-decoration: none;
+                color: white;
+              "
+              >Accept</a
+            >
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td
+          style="
+            color: #60616b;
+            font-size: 14px;
+            font-weight: 400;
+            padding-bottom: 0;
+          "
+        >
+          Thanks,<br />
+          Zamp Team
+        </td>
+      </tr>
+
+      <!-- footer -->
+
+      <tr height="56px"></tr>
+      <tr>
+        <td style="padding-bottom: 24px">
+          <!-- Spacer between content and footer -->
+        </td>
+      </tr>
+      <tr style="background-color: #eef1ff">
+        <td style="font-size: 10px; font-weight: 300; padding: 24px 24px 6px 24px">
+          For more information about how we process data, please see our
+          <a
+            href="https://www.zamp.finance/privacy-policy"
+            style="text-decoration: underline; color: inherit"
+            >Privacy Policy</a
+          >.
+        </td>
+      </tr>
+      <tr style="background-color: #eef1ff">
+        <td style="font-size: 10px; font-weight: 300; padding: 0 24px 6px 24px">
+          © Varni Labs. All rights reserved.
+        </td>
+      </tr>
+      <tr style="background-color: #eef1ff">
+        <td
+          style="
+            font-size: 10px;
+            font-weight: 300;
+            padding: 6px 24px 24px 24px;
+            border-radius: 0px 0px 12px 12px;
+          "
+        >
+          <a
+            style="
+              border: 0;
+              padding: 0;
+              margin: 0;
+              outline: 0;
+              text-decoration: none;
+            "
+            href="https://twitter.com/ZampFinance"
+          >
+            <img
+              src="https://storage.googleapis.com/zamp-prd-emailer-assets/twitter_2.png"
+              style="width: 24px; height: 24px"
+            />
+          </a>
+          <a
+            style="
+              border: 0;
+              padding: 0;
+              margin: 0;
+              outline: 0;
+              text-decoration: none;
+            "
+            href="https://www.linkedin.com/company/zampfintech/"
+          >
+            <img
+              src="https://storage.googleapis.com/zamp-prd-emailer-assets/linkedin_2.png"
+              style="width: 24px; height: 24px"
+            />
+          </a>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

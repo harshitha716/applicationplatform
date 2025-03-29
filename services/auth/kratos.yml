@@ -1,0 +1,56 @@
+version: v1.3.1
+
+log:
+  level: trace
+  format: json
+  leak_sensitive_values: true
+
+identity:
+  default_schema_id: default
+  schemas:
+    - id: default
+      url: file:///home/ory/identity.schema.json
+
+cookies:
+  path: /
+  same_site: Lax
+
+session:
+  lifespan: 24h
+
+selfservice:
+  methods:
+    oidc:
+      enabled: true
+    password:
+      enabled: true
+  flows:
+    registration:
+      after:
+        oidc:
+          hooks:
+            - hook: "web_hook"
+              config:
+                url: placeholder
+                method: "POST"
+                headers:
+                  X-Zamp-Admin-Secret: placeholder
+                body: file:///home/ory/afterregistration.jsonnet
+            - hook: "session"
+        password:
+          hooks:
+            - hook: "web_hook"
+              config:
+                url: placeholder
+                method: "POST"
+                headers:
+                  X-Zamp-Admin-Secret: placeholder
+                body: file:///home/ory/afterregistration.jsonnet
+            - hook: "session"
+                
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 12
+

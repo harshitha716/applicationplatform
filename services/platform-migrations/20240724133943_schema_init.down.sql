@@ -1,0 +1,3 @@
+DROP schema IF EXISTS app CASCADE;
+
+DROP schema IF EXISTS kratos CASCADE;

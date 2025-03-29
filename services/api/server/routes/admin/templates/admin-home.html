@@ -1,0 +1,151 @@
+<html>
+
+<head>
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="container" class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div id="login-form" class="flex flex-col items-center justify-center w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+            <h1 class="mb-8 text-2xl font-bold text-gray-800">Login to Admin dashboard for {{pre_process_environment .}}</h1>
+            <form id="input-form" class="flex flex-col w-full space-y-4">
+                <input type="text" name="admin-secret" placeholder="Admin Secret" 
+                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="text" name="user-id" placeholder="User ID"
+                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="text" name="organization-id" placeholder="Organization ID"
+                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <button type="submit" 
+                    class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Login
+                </button>
+            </form>
+            <div id="error-message" class="hidden mt-4 text-red-600">
+                <p>Invalid username or password</p>
+            </div>
+        </div>
+        <div id="api-catalog" class="hidden w-full max-w-md p-8 mt-8 bg-white rounded-lg shadow-lg">
+            <p class="text-xl font-semibold text-gray-800 mb-6">API Catalog for {{pre_process_environment .}} </p>
+            <ul id="api-catalog-list" class="space-y-2">
+            </ul>
+        </div>
+    </div>
+    <script>
+
+        const getOrgId = () => {
+            return window.sessionStorage.getItem("ZAMP_OPS_ORG_ID")
+        }
+
+        const getUserId = () => {
+            return window.sessionStorage.getItem("ZAMP_OPS_USER_ID")
+        }
+
+        const getAdminSecret = () => {
+            return window.sessionStorage.getItem("ZAMP_OPS_ADMIN_SECRET")
+        }
+
+        const getAdminHeaders = () => {
+            return {
+                "X-Zamp-Admin-Secret": getAdminSecret(),
+                "X-Zamp-User-Id": getUserId(),
+                "X-Zamp-Organization-Ids": [getOrgId()],
+                "Content-Type": "application/json"
+            }
+        }
+
+        const getApiCatalog = () => {
+            return fetch("/admin/api-catalog", {
+                headers: getAdminHeaders()
+            }).then(response => {
+                if (response.ok) {
+                    return response.json().then(data => {
+                        if (data && data.length > 0) {
+                            return data
+                        }
+                        return []
+                    })
+                } else {
+                    throw new Error("Failed to fetch API catalog")
+                }
+            })
+        }
+
+        const verifyAuthenticated = () => {
+            const userId = getUserId();
+            const orgId = getOrgId()
+
+            const organizationAudiences = fetch("/organizations/" + orgId + "/audiences", {
+                headers: getAdminHeaders()
+            }).then(response => {
+                if (response.ok) {
+                    response.json().then(data => {
+                        if (data.length > 0 && data.find(audience => audience.resource_audience_id === userId)) {
+                            getApiCatalog().then(catalog => {
+                                const apiCatalogList = document.getElementById("api-catalog-list")
+                                apiCatalogList.innerHTML = ""
+                                catalog.forEach(api => {
+                                    const li = document.createElement("li")
+                                    li.className = "mb-3"
+                                    li.innerHTML = `
+                                        <a href="${api.path}" class="block p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-lg font-semibold text-gray-800 hover:text-blue-600">${api.title}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <p class="text-sm text-gray-500 mt-1">${api.path}</p>
+                                        </a>`
+                                    apiCatalogList.appendChild(li)
+
+                                    // remove login form and show api catalog
+                                    document.getElementById("login-form").classList.add("hidden")
+                                    document.getElementById("api-catalog").classList.remove("hidden")
+
+                                })
+                            }).catch(error => {
+                                throw new Error("Failed to fetch API catalog")
+                            })
+                        }
+                    })
+                } else {
+                    throw new Error("Failed to verify authentication")
+                }
+            }).catch(error => {
+                // set error content
+                document.getElementById("error-message").innerHTML = "You are not authorized to access this application";
+                document.getElementById("error-message").classList.remove("hidden");
+
+                // clear local storage
+                window.sessionStorage.removeItem("ZAMP_OPS_ADMIN_SECRET")
+                window.sessionStorage.removeItem("ZAMP_OPS_USER_ID")
+                window.sessionStorage.removeItem("ZAMP_OPS_ORG_ID")
+            })
+        }
+
+
+        verifyAuthenticated();
+
+    </script>
+    <script>
+        const form = document.getElementById("input-form")
+        form.addEventListener("submit", (e) => {
+            e.preventDefault()
+
+            const setCredentials = () => {
+                const adminSecret = document.querySelector("input[name='admin-secret']").value;
+                const userId = document.querySelector("input[name='user-id']").value;
+                const organizationId = document.querySelector("input[name='organization-id']").value;
+                window.sessionStorage.setItem("ZAMP_OPS_ADMIN_SECRET", adminSecret);
+                window.sessionStorage.setItem("ZAMP_OPS_USER_ID", userId);
+                window.sessionStorage.setItem("ZAMP_OPS_ORG_ID", organizationId);
+                window.location.reload();
+            }
+
+            setCredentials()
+        })
+    </script>
+</body>
+
+</html>

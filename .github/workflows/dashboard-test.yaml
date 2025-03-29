@@ -1,0 +1,44 @@
+name: Dashboard Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/dashboard/**"
+      - ".github/workflows/dashboard-test.yaml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/dashboard
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "./services/dashboard/package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --coverageReporters="json-summary"
+
+      - name: Get coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+
+      - name: Add or update coverage comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: dashboard-coverage
+          message: |
+            Total test coverage for dashboard service: ${{ format('{0}', steps.coverage.outputs.percentage) }}%

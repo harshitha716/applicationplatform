@@ -1,0 +1,27 @@
+name: Dashboard docker build
+
+on:
+  workflow_dispatch: null
+  pull_request:
+    paths:
+      - 'services/dashboard/**/*'
+      - '.github/workflows/dashboard-docker-build.yaml'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy env file
+        run: cp .env.example .env
+
+      - name: Run docker-compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./docker-compose.yaml"
+          up-flags: "--build -d"
+          services: dashboard

@@ -1,0 +1,1 @@
+cd services/dashboard && npx lint-staged && npx prettier --write .

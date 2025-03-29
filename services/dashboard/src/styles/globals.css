@@ -1,0 +1,270 @@
+@tailwind components;
+
+@layer components {
+  .container-start-90 {
+    @apply flex items-start justify-start w-[90px];
+  }
+  .login-btn-opacity-300-easeInOut {
+    @apply transition-opacity duration-300 ease-in-out;
+  }
+}
+
+:root {
+  font-family: 'Inter Variable';
+}
+
+* > ::-webkit-scrollbar {
+  width: 12px;
+  border-radius: 100%;
+  overflow: hidden;
+}
+
+/* Track */
+* > ::-webkit-scrollbar-track {
+  background: #fff0;
+}
+
+/* Handle */
+* > ::-webkit-scrollbar-thumb {
+  background: #f2f2f2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Handle on hover */
+* > ::-webkit-scrollbar-thumb:hover {
+  background: #ebebeb;
+}
+
+.ag-cell-wrapper {
+  &:where(.ag-row-group) {
+    align-items: center;
+  }
+}
+
+.ag-filter-active {
+  color: #2546f5;
+  position: relative;
+  outline: none;
+  background-color: #fff;
+  --ag-icon-button-hover-color: none;
+}
+
+.ag-filter-active {
+  :where(.ag-icon-filter) {
+    clip-path: none;
+  }
+}
+
+.ag-filter-active {
+  &:after {
+    content: '';
+    height: 0px;
+    width: 0;
+  }
+}
+/* Handle on hover */
+.custom-scroll-bar::-webkit-scrollbar-thumb:hover {
+  background: #93937b;
+}
+
+.ag-checkbox-input-wrapper {
+  height: 14px;
+  width: 14px;
+}
+
+.ag-column-select-column-label {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.ag-status-name-value {
+  padding: 6px 0px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 0.875rem;
+  align-content: center;
+}
+
+.ag-charts-proxy-legend-toolbar {
+  width: 100%;
+  left: 0;
+  display: flex !important;
+  justify-content: start !important;
+  align-items: start !important;
+}
+
+:where(.ag-cell-editor) .ag-wrapper {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.ag-rich-select-field-input {
+  :where(.ag-input-field-input) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+.ag-row-group {
+  z-index: 0 !important;
+  overflow: visible !important;
+}
+
+.ag-input-field-input:where(:not([type='checkbox'], [type='radio'])) {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.pivot .ag-header,
+.pivot .ag-row,
+.pivot .ag-cell,
+.pivot .ag-header-group-cell,
+.pivot .ag-header-cell,
+.pivot .ag-header-cell-comp-wrapper,
+.pivot .ag-pinned-left-header {
+  padding: 0 !important;
+  border: none !important;
+}
+
+.pivot .ag-root-wrapper {
+  border-radius: 12px !important;
+  border: 1px solid #ebebeb !important;
+}
+
+.pivot .ag-header-group-cell {
+  border-right: 0.5px solid #ebebeb !important;
+  border-bottom: 0.5px solid #ebebeb !important;
+}
+
+.pivot .ag-header-group-cell.ag-column-last {
+  border-right: none !important;
+}
+
+.pivot .ag-sticky-bottom {
+  border-top: 0.5px solid #ebebeb !important;
+}
+
+.pivot .ag-header {
+  overflow: visible !important;
+}
+
+.pivot .ag-header .ag-pinned-left-header {
+  overflow: visible !important;
+}
+
+.pivot .ag-header .ag-pinned-left-header .ag-header-cell {
+  overflow: visible !important;
+}
+
+.pivot .ag-header-cell-comp-wrapper {
+  height: 100% !important;
+}
+
+.pivot .ag-header-cell-resize::after {
+  width: 0px !important;
+  background-color: white !important;
+}
+
+.pivot .ag-horizontal-left-spacer {
+  border-right: none !important;
+}
+
+.pivot .ag-body-viewport {
+  overflow: auto !important;
+  max-height: var(--pivot-max-height) !important;
+}
+
+.pivot .ag-center-cols-viewport {
+  min-height: unset !important;
+}
+
+.ag-charts-tooltip {
+  font-family: 'Inter';
+  border: 1px solid #ebebeb;
+  padding: 4px;
+  color: #171717;
+  font-weight: 450;
+  font-size: 12px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 0.86px 0px #00000003;
+  box-shadow: 0px 0px 2.06px 0px #00000004;
+  box-shadow: 0px 0px 3.88px 0px #00000005;
+  box-shadow: 0px 0px 6.92px 0px #00000006;
+  box-shadow: 0px 0px 12.95px 0px #00000007;
+  box-shadow: 0px 0px 31px 0px #0000000a;
+}
+
+.ag-charts-tooltip-heading {
+  font-weight: 450;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.dataset .ag-root-wrapper {
+  border-left: none;
+}
+
+#dataset-table .ag-header {
+  box-shadow: 0px 3px 0px 0px rgba(0, 0, 0, 0.02);
+  z-index: 2; /* Ensure it stays above the grid rows */
+  position: relative;
+}
+
+.login-btn-scale-100 {
+  transform: scale(1);
+  transition: transform 0.3s ease-out;
+  opacity: 1;
+}
+
+.login-btn-scale-20 {
+  transform: scale(0.2);
+  transition: transform 0.3s ease-in;
+  opacity: 0;
+}
+
+.color-transition::before,
+.color-transition::after {
+  content: '';
+}
+
+.color-transition:not(.active)::after {
+  transition: none;
+  transform: translateX(-150%);
+}
+
+.ag-grid-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e2da #fff0;
+}
+
+/* Change the dragging placeholder color */
+.react-grid-item.react-grid-placeholder {
+  background: white !important;
+}
+
+.ag-cell-focus:before {
+  border-radius: 3px;
+}
+
+.ag-cell-range-single-cell {
+  border-radius: 4px;
+}
+
+.ag-fill-handle {
+  border-radius: 100%;
+  border-width: 1px;
+  border-color: white;
+}
+
+#dataset-table .ag-menu {
+  border-radius: 6px;
+}
+
+.hidden-cell {
+  opacity: 0 !important; /* Hide cell when row is not hovered */
+}
+
+.ag-row-hover .hidden-cell {
+  opacity: 1 !important; /* Show when row is hovered */
+}

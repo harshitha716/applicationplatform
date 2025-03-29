@@ -1,0 +1,9 @@
+/.github/CODEOWNERS @wawhal
+/.github @atharvagunjkar @ZampFi/application-platform-backend
+/services/api @ZampFi/application-platform-backend
+/services/api/core/dataplatform @ZampFi/data-platform
+/services/api/pkg/dataplatform @ZampFi/data-platform
+/services/auth @ZampFi/application-platform-backend
+/services/app-migrations @ZampFi/application-platform-backend
+/services/platform-migrations @ZampFi/application-platform-backend
+/services/dashboard @ZampFi/application-platform-frontend

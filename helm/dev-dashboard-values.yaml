@@ -1,0 +1,56 @@
+global:
+  service:
+    name: hcp-dev
+
+projectName: zamp  # required
+default:
+  annotations:
+    all:
+      app.kv.io/env: dev
+  labels:
+    all:
+      service-name: hcp-dev
+  resources:
+    request:
+      cpu: 100m
+      memory: 250Mi
+    limit:
+      memory: 500Mi
+      cpu: 200m
+  replicaCount: 1
+  image:
+    repository:
+    tag:
+    imagePullPolicy: Always
+  signoz:
+    enabled: true
+  configMaps:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: false
+  externalSecrets:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: true
+deployment:
+  - name: "dashboard"
+    service:
+      type: ClusterIP
+      ports:
+      - port: 3000
+        name: dashboard
+    serviceAccount:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: zamp-dev-sg-hcp@staging-351109.iam.gserviceaccount.com
+    containers:
+      - name: "dashboard"
+        port: 9000
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80

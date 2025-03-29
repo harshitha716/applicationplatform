@@ -1,0 +1,58 @@
+global:
+  service:
+    name: hcp-prd
+
+projectName: zamp  # required
+default:
+  annotations:
+    all:
+      app.kv.io/env: prd
+  labels:
+    all:
+      service-name: hcp-prd
+  resources:
+    request:
+      cpu: 50m
+      memory: 50Mi
+    limit:
+      memory: 100Mi
+  replicaCount: 1
+  image:
+    repository:
+    tag:
+    imagePullPolicy: Always
+  signoz:
+    enabled: true
+  configMaps:
+    injection:
+      enabled: false
+    volumeMount:
+      enabled: false
+  externalSecrets:
+    injection:
+      enabled: true
+      secrets:
+      - secretName: env
+        dataFrom:
+          secretKey: zamp-prd-us-hcp-secrets-env
+        refreshInterval: 10m
+        secretStoreName: gcp-secret-manager
+    volumeMount:
+      enabled: true
+job:
+  - name: "platform-migrations"
+    labels:
+      app.kubernetes.io/component: herm
+    serviceAccount:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: zamp-prd-us-hcp@production-351109.iam.gserviceaccount.com
+    containers:
+      - name: platform-migrations
+        command:
+          - ./execute.sh
+        env:
+          POD_TYPE: "job"
+    jobRestartPolicy: "OnFailure"
+    startingDeadlineSeconds: "60"
+    terminationGracePeriodSeconds: 30

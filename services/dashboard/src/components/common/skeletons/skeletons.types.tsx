@@ -1,0 +1,3 @@
+export const SKELETON_ELEMENT_SHAPES = {
+  CIRCLE: 'CIRCLE',
+};

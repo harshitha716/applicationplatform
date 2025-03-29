@@ -1,0 +1,12 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: zamp-hcp-api-worker-default-api-worker-default
+  namespace: hcp
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zamp-hcp-api-worker-default-api-worker-default
+  endpoints:
+  - port: metrics
+    interval: "30s"

@@ -1,0 +1,14 @@
+FROM node:22-alpine
+WORKDIR /home/node/app
+
+ARG ENVIRONMENT
+ENV TIMESTAMP=$TIMESTAMP
+
+COPY ./package* .
+RUN npm ci
+
+COPY . .
+RUN NEXT_PUBLIC_ENVIRONMENT=$ENVIRONMENT npm run build
+
+EXPOSE 3000
+CMD ["npm", "start"]

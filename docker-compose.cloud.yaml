@@ -1,0 +1,18 @@
+services:
+  #### Auth service overrides
+  auth:
+    depends_on: []
+    env_file:
+      - .env.cloud
+  api:
+    depends_on:
+      - auth
+      - temporal
+    env_file:
+      - .env.cloud
+  api-worker-default:
+    depends_on:
+      - auth
+      - temporal
+    env_file:
+      - .env.cloud

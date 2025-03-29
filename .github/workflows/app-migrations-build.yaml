@@ -1,0 +1,27 @@
+name: Migrations clean run
+
+on:
+  workflow_dispatch: null
+  pull_request:
+    paths:
+      - 'services/app-migrations/**/*.sql'
+      - '.github/workflows/app-migrations-build.yaml'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy env file
+        run: cp .env.example .env
+
+      - name: Run docker-compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./docker-compose.yaml"
+          up-flags: "--build --attach app-migrate --abort-on-container-failure --exit-code-from app-migrate"
+          services: app-migrate

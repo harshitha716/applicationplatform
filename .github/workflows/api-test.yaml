@@ -1,0 +1,173 @@
+name: API Service Tests
+
+on:
+  workflow_dispatch: null
+  pull_request:
+    paths:
+      - 'services/api/**/*.go'
+      - '.github/workflows/api-test.yaml'
+    branches:
+      - main
+
+jobs:
+  api-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required for diff coverage
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run Tests with Coverage (Excluding Mocks)
+        run: go test $(go list ./... | grep -v '/mocks\|/server/routes/admin') -coverprofile=coverage.out
+
+      - name: Convert Go Coverage to Cobertura Format
+        run: |
+          go install github.com/boumenot/gocover-cobertura@latest
+          gocover-cobertura < coverage.out > coverage.xml
+          echo "Coverage XML structure:"
+          grep -A 5 "<class" coverage.xml | head -20  # Show first few class entries
+
+      - name: Calculate Total Coverage
+        run: |
+          TOTAL_COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          echo "TOTAL_COVERAGE=$TOTAL_COVERAGE" >> $GITHUB_ENV
+
+      - name: Install diff-cover
+        run: pip install diff-cover
+
+      - name: Compute Diff Coverage
+        run: |
+          git diff origin/${{ github.base_ref }} --name-only -- '*.go' > changed_files.txt
+          if [ -s changed_files.txt ]; then
+            echo "Changed Go files:"
+            cat changed_files.txt
+            echo "Running diff-cover..."
+            diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=0 > diff_coverage.txt || true
+            echo "diff-cover output:"
+            cat diff_coverage.txt
+            DIFF_COVERAGE=$(grep -oP '(?<=Coverage: )[0-9]+(?=%)' diff_coverage.txt || echo "0")
+            echo "Extracted diff coverage: $DIFF_COVERAGE%"
+            echo "DIFF_COVERAGE=$DIFF_COVERAGE" >> $GITHUB_ENV
+          else
+            echo "No Go files changed, assuming full coverage"
+            echo "DIFF_COVERAGE=100" >> $GITHUB_ENV  # If no Go files changed, assume full coverage
+          fi
+
+      - name: Verify Git Diff
+        run: |
+          echo "Git diff summary:"
+          git diff --stat origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' || true
+          echo "Git diff numstat:"
+          git diff --numstat origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' || true
+
+      - name: Calculate Total Changed Lines (Excluding Test Files)
+        run: |
+          # Check if there are any non-test Go files changed
+          NON_TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' || true)
+          
+          if [ -z "$NON_TEST_FILES" ]; then
+            # No non-test Go files changed, set all values to 0
+            echo "CHANGED_LOC=0" >> $GITHUB_ENV
+            echo "LINES_ADDED=0" >> $GITHUB_ENV
+            echo "LINES_REMOVED=0" >> $GITHUB_ENV
+          else
+            # Calculate lines added and removed
+            LINES_ADDED=$(git diff --numstat origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' | awk '{sum+=$1} END {print sum}')
+            LINES_REMOVED=$(git diff --numstat origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' | awk '{sum+=$2} END {print sum}')
+            
+            # Calculate total changed lines (added + removed)
+            CHANGED_LOC=$((LINES_ADDED + LINES_REMOVED))
+            
+            echo "CHANGED_LOC=$CHANGED_LOC" >> $GITHUB_ENV
+            echo "LINES_ADDED=$LINES_ADDED" >> $GITHUB_ENV
+            echo "LINES_REMOVED=$LINES_REMOVED" >> $GITHUB_ENV
+          fi
+
+      - name: Extract Uncovered Lines
+        run: |
+          echo "Running diff-cover with --show-uncovered option..."
+          diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --show-uncovered > diff_coverage_detailed.txt || true
+          echo "diff-cover detailed output:"
+          cat diff_coverage_detailed.txt
+          
+          # Extract missing files and lines from the diff-cover output
+          MISSING_FILES=$(grep "Missing lines" diff_coverage_detailed.txt || echo "")
+          
+          # Create a formatted uncovered lines report
+          if [ -n "$MISSING_FILES" ]; then
+            echo "Uncovered lines in changed files:" > uncovered_lines.txt
+            while IFS= read -r line; do
+              if [[ "$line" =~ .*\(0\.0%\).*Missing\ lines\ (.*) ]]; then
+                FILE=$(echo "$line" | cut -d' ' -f1)
+                LINES="${BASH_REMATCH[1]}"
+                echo "" >> uncovered_lines.txt
+                echo "* **$FILE**" >> uncovered_lines.txt
+                echo "  * Lines: $LINES" >> uncovered_lines.txt
+              fi
+            done < <(grep "Missing lines" diff_coverage_detailed.txt)
+            UNCOVERED_LINES=$(cat uncovered_lines.txt)
+          else
+            UNCOVERED_LINES=""
+          fi
+          
+          echo "Extracted uncovered lines:"
+          echo -e "$UNCOVERED_LINES"
+          
+          echo "## 🛠 API Test Coverage Report" > coverage_report.md
+          echo "" >> coverage_report.md
+          echo "| Metric | Value |" >> coverage_report.md
+          echo "|--------|-------|" >> coverage_report.md
+          echo "| **Total Coverage** | **$TOTAL_COVERAGE** |" >> coverage_report.md
+          echo "| **Diff Coverage** | **$DIFF_COVERAGE%** |" >> coverage_report.md
+          echo "| **Changed LOC (Added + Removed)** | **$CHANGED_LOC** |" >> coverage_report.md
+          echo "| **Lines Added** | **$LINES_ADDED** |" >> coverage_report.md
+          echo "| **Lines Removed** | **$LINES_REMOVED** |" >> coverage_report.md
+          echo "" >> coverage_report.md
+          
+          # Determine status message based on requirements
+          if [ -z "$(git diff --name-only origin/${{ github.base_ref }} -- '*.go' | grep -v '_test.go' || true)" ]; then
+            echo "✅ **Check Passed: Only test files changed**" >> coverage_report.md
+            echo "STATUS=PASS" >> $GITHUB_ENV
+          elif [ "$CHANGED_LOC" -lt 25 ]; then
+            echo "✅ **Check Passed: Less than 25 lines of code changed**" >> coverage_report.md
+            echo "STATUS=PASS" >> $GITHUB_ENV
+          elif [ "$DIFF_COVERAGE" -ge 85 ]; then
+            echo "✅ **Check Passed: Diff coverage meets the 85% threshold**" >> coverage_report.md
+            echo "STATUS=PASS" >> $GITHUB_ENV
+          else
+            echo "❌ **Check Failed: Diff coverage ($DIFF_COVERAGE%) is below the 85% threshold**" >> coverage_report.md
+            echo "STATUS=FAIL" >> $GITHUB_ENV
+          fi
+          
+          # Always show uncovered lines if they exist, regardless of pass/fail status
+          if [ -n "$UNCOVERED_LINES" ]; then
+            echo "" >> coverage_report.md
+            echo "### Uncovered Lines in Changes:" >> coverage_report.md
+            echo "\`\`\`" >> coverage_report.md
+            echo "$UNCOVERED_LINES" >> coverage_report.md
+            echo "\`\`\`" >> coverage_report.md
+          fi
+
+      - name: Post Coverage Comment
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: services/api/coverage_report.md
+          comment_tag: api-coverage
+          mode: recreate
+
+      - name: Check Coverage Requirements
+        run: |
+          if [ "$STATUS" = "FAIL" ]; then
+            echo "❌ Diff coverage ($DIFF_COVERAGE%) is below 85%, and total LOC changed ($CHANGED_LOC) ≥ 25."
+            exit 1
+          else
+            echo "✅ Coverage check passed!"
+          fi
