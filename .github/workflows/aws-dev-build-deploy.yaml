@@ -351,9 +351,11 @@ jobs:
         run: |
           helm plugin install https://github.com/hypnoglow/helm-s3.git
           helm plugin list
+
+          
       - name: Deploy App Migrations
         run: |
-         IMAGE_TAG=$GITHUB_SHA
+         IMAGE_TAG=$NEW_TAG
          VALUES_FILE=helm/${BUILD_ENV}-app-migrations-values.yaml
 
          echo "Deploying ${APP_NAME} with image tag ${IMAGE_TAG}"
