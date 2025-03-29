@@ -20,7 +20,7 @@ default:
       memory: 100Mi
   replicaCount: 1
   image:
-    repository: 842675998483.dkr.ecr.us-east-2.amazonaws.com/harshitha
+    repository: 842675998483.dkr.ecr.us-east-2.amazonaws.com
     tag: 
     imagePullPolicy: Always
   signoz:
