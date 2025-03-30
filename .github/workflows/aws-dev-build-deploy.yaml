@@ -133,7 +133,7 @@ jobs:
         id: tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+        run: >
           NEW_TAG=$(echo "v$(($(git tag -l 'v*' --sort=-v:refname | head -n 1 | cut
           -c 2-)+1))")
 
