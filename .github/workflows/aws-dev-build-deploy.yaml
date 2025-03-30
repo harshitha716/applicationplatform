@@ -71,6 +71,7 @@ on:
           - aws-dev
 env:
   APP_NAME: hcp
+  NEW_TAG: $GITHUB_SHA
   
 jobs:
   prepare-env:
@@ -98,7 +99,7 @@ jobs:
       HELM_CHART_NAME: ${{ steps.vars.outputs.HELM_CHART_NAME }}
       LABEL_SELECTOR: ${{ steps.vars.outputs.LABEL_SELECTOR }}
       APP_NAMES: ${{ steps.vars.outputs.APP_NAMES }}
-      NEW_TAG: ${{ steps.tag.outputs.NEW_TAG }}
+      NEW_TAG: ${{ steps.vars.outputs.NEW_TAG }}
       AWS_ACCOUNT_ID: ${{ steps.set-account.outputs.AWS_ACCOUNT_ID }}
       ECR_REGISTRY: ${{ steps.registry.outputs.ECR_REGISTRY }}
     steps:
