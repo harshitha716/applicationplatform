@@ -129,20 +129,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.BRANCH }}
-
-      - name: Create a new tag version
-        id: tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          NEW_TAG=$(echo "v$(($(git tag -l 'v*' --sort=-v:refname | head -n 1 | cut
-          -c 2-)+1))")
-
-          git tag $NEW_TAG
-
-          git push origin $NEW_TAG
-          
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
     
       
       - name: Determine AWS AccountID based on environment
